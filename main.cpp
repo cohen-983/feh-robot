@@ -7,15 +7,15 @@ int main(void)
 
     float x,y;
 
-    LCD.Clear( FEHLCD::Black );
-    LCD.SetFontColor( FEHLCD::White );
+    LCD.Clear(FEHLCD::Black);
+    LCD.SetFontColor(FEHLCD::White);
 
-    while( true )
+    while(true)
     {
-        if( LCD.Touch(&x,&y) )
+        if(LCD.Touch(&x,&y))
         {
             LCD.WriteLine("Hello, suckers!");
-            Sleep( 100 );
+            Sleep(100);
         }
     }
     return 0;
