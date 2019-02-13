@@ -14,7 +14,7 @@ int main(void)
     {
         if(LCD.Touch(&x,&y))
         {
-            LCD.WriteLine("Hello, suckers!");
+            LCD.WriteLine("Hello, Star Trak!");
             Sleep(100);
         }
     }
