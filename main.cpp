@@ -21,7 +21,7 @@ FEHServo tinyServo(FEHServo::Servo0);
  * *********************/
 void MoveForward(int powerPercent, float inches){
     rightMotor.SetPercent(powerPercent);
-    leftMotor.SetPercent(powerPercent);
+    leftMotor.SetPercent(-powerPercent);
 
     //Calculate rotations needed to travel that distance
     rotations = inches/CIRCUMFRENCE;
