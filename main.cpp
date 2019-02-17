@@ -130,12 +130,16 @@ void Move(int x, float y)
                 if(rightCounts > leftCounts) // if not, balance it out
                 {
                     leftMotor.SetPercent(leftCoeff*powerPercent);
+                    rightMotor.Stop();
                 }
                 else if(leftCounts > rightCounts)
                 {
                     rightMotor.SetPercent(rightCoeff*powerPercent);
+                    leftMotor.Stop();
                 }
             }
+            rightMotor.Stop();
+            leftMotor.Stop();
             rightEncoder.ResetCounts();
             leftEncoder.ResetCounts();
             moveComplete = true;
