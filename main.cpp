@@ -15,15 +15,19 @@ DigitalEncoder leftEncoder(FEHIO::P0_1);
 
 FEHServo tinyServo(FEHServo::Servo0);
 
+
 void Move(int x, float y);
 //Given an integer argument for power and a float argument for distance, moves the robot that far at that speed
+
+
 
 int main(void)
 {
 
     LCD.SetFontColor(FEHLCD::White);
 
-
+    tinyServo.SetMin(540);
+    tinyServo.SetMax(2469);
 /**********************************************************
     //TO MOVE TOWARDS THE POWERED WHEELS USE THIS FORMAT  *
     rightMotor.SetPercent(50);                            *
@@ -35,8 +39,7 @@ int main(void)
     rightMotor.Stop();
     leftMotor.Stop();
 
-    tinyServo.SetMin(540);
-    tinyServo.SetMax(2469);
+
 
 
 }
@@ -51,6 +54,9 @@ void Move(int x, float y)
     bool negativeDistance = false;
     float rotations = 0;
     int encoderTicks = 0;
+
+    rightEncoder.ResetCounts();
+    leftEncoder.ResetCounts();
 
     if(distanceToMove < 0) //throw a flag for a negative distance
         negativeDistance = true;
@@ -80,7 +86,7 @@ void Move(int x, float y)
     if(negativeDistance == true) //flip direction for a negative move
     {
         leftCoeff = 1;
-        rightCoeff = 1;
+        rightCoeff = -1;
     }
 
     rightMotor.SetPercent(rightCoeff*powerPercent);
@@ -111,7 +117,7 @@ void Move(int x, float y)
             leftMotor.SetPercent(leftCoeff*powerPercent);
         }
 
-        else if(rightCounts >= encoderTicks && leftCounts >= encoderTicks)
+        if(rightCounts >= encoderTicks && leftCounts >= encoderTicks)
         // if either motor is past the threshold, stop the move and balance it out at the finish
         {
             rightMotor.Stop(); //stop them
