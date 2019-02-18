@@ -15,6 +15,8 @@ FEHMotor leftMotor(FEHMotor::Motor1,9.0);
 DigitalEncoder rightEncoder(FEHIO::P0_0);
 DigitalEncoder leftEncoder(FEHIO::P0_1);
 
+AnalogInputPin cds(FEHIO::P1_0);
+
 FEHServo tinyServo(FEHServo::Servo0);
 
 
@@ -22,29 +24,17 @@ void Move(int pow, float dis);
 //Given an integer argument for power and a float argument for distance, moves the robot that far at that speed
 void Turn(bool piv, int pow, float deg);
 //Given an integer argument of 1 for a pivot or 0 for a standard turn, an integer argument for power, and a float argument for degrees to turn, turns the robot the specified number of degrees.
+//Positive should turn clockwise
+void runDiagnostics();
+//Check that all motors and input ports are working correctly
 
 
 
 int main(void)
 {
 
-    LCD.SetFontColor(FEHLCD::White);
-
-    tinyServo.SetMin(540);
-    tinyServo.SetMax(2469);
-/**********************************************************
-    //TO MOVE TOWARDS THE POWERED WHEELS USE THIS FORMAT  *
-    rightMotor.SetPercent(50);                            *
-    leftMotor.SetPercent(-50);                            *
-**********************************************************/
-
-
-    LCD.WriteLine("Awesome");
-    rightMotor.Stop();
-    leftMotor.Stop();
-
-
-
+    Move(15,12);
+    Turn(true,25,90);
 
 }
 
@@ -117,7 +107,7 @@ void Move(int x, float y)
             leftMotor.SetPercent(leftCoeff*powerPercent);
         }
 
-        if(rightCounts >= encoderTicks && leftCounts >= encoderTicks)
+        if(rightCounts >= encoderTicks || leftCounts >= encoderTicks)
         // if either motor is past the threshold, stop the move and balance it out at the finish
         {
             rightMotor.Stop(); //stop them
@@ -125,7 +115,9 @@ void Move(int x, float y)
             while(rightCounts != leftCounts) // then verify that they went the same distance
             {
                 leftCounts = leftEncoder.Counts();
+                LCD.WriteLine(leftCounts); //TESTING
                 rightCounts = rightEncoder.Counts();
+                LCD.WriteLine(rightCounts);//TESTING
 
                 if(rightCounts > leftCounts) // if not, balance it out
                 {
@@ -281,4 +273,41 @@ void Turn(bool t, int x, float y)
             }
         }
     }
+}
+void runDiagnostics(){
+    LCD.Clear();
+    //Check that motors and encoders work
+    leftEncoder.ResetCounts();
+    rightEncoder.ResetCounts();
+    //Run right motor
+    LCD.WriteLine("Running right Motor");
+    rightMotor.SetPercent(15);
+    Sleep(1.0);
+    rightMotor.Stop();
+    LCD.Write("Right Encoder Value (should be >0): ");
+    LCD.WriteLine(rightEncoder.Counts());
+    LCD.Write("Left Encoder Value: ");
+    LCD.WriteLine(leftEncoder.Counts());
+    Sleep(5.0);
+    LCD.Clear();
+
+    //Run Left motor test
+    leftEncoder.ResetCounts();
+    rightEncoder.ResetCounts();
+
+    LCD.WriteLine("Running left Motor");
+    leftMotor.SetPercent(15);
+    Sleep(1.0);
+    leftMotor.Stop();
+    LCD.Write("Right Encoder Value: ");
+    LCD.WriteLine(rightEncoder.Counts());
+    LCD.Write("Left Encoder Value (should be >0): ");
+    LCD.WriteLine(leftEncoder.Counts());
+    Sleep(5.0);
+    LCD.Clear();
+
+    //Future Additions:
+    //Servos
+    //CdS cell
+
 }
