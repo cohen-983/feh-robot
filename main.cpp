@@ -147,7 +147,7 @@ void Move(int x, float y)
     }
 }
 
-void Turn(int t, int x, float y)
+void Turn(bool t, int x, float y)
 {
     int powerPercent = x;
     float angleToTurn = y;
