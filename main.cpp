@@ -4,6 +4,7 @@
 #include <FEHMotor.h>
 #include <FEHServo.h>
 #include <FEHRPS.h>
+#include <FEHBuzzer.h>
 
 #define PI 3.1415926
 #define CIRCUMFRENCE 7.853975
@@ -27,12 +28,15 @@ void Turn(bool piv, int pow, float deg);
 //Positive should turn clockwise
 void runDiagnostics();
 //Check that all motors and input ports are working correctly
+void SansUndertale();
+//Does what you'd expect
 
 
 
 int main(void)
 {
 
+    SansUndertale();
     Move(15,12);
     Turn(true,25,90);
 
@@ -274,6 +278,7 @@ void Turn(bool t, int x, float y)
         }
     }
 }
+
 void runDiagnostics(){
     LCD.Clear();
     //Check that motors and encoders work
@@ -309,5 +314,83 @@ void runDiagnostics(){
     //Future Additions:
     //Servos
     //CdS cell
+}
+
+void SansUndertale
+{
+    Buzzer.Tone(D4, 125);
+    Buzzer.Tone(D4, 125);
+    Buzzer.Tone(D5, 125);
+    Sleep(125);
+    Buzzer.Tone(C5, 250);
+    Sleep(125);
+    Buzzer.Tone(A4, 250);
+    Buzzer.Tone(Af4, 250);
+    Buzzer.Tone(G4, 250);
+    Buzzer.Tone(F4, 250);
+    Buzzer.Tone(D4, 125);
+    Buzzer.Tone(F4, 125);
+    Buzzer.Tone(G4, 125);
+    //Dear god, this is a lot of work, that was one measure.
+    Buzzer.Tone(C4, 125);
+    Buzzer.Tone(C4, 125);
+    Buzzer.Tone(D5, 125);
+    Sleep(125);
+    Buzzer.Tone(C5, 250);
+    Sleep(125);
+    Buzzer.Tone(A4, 250);
+    Buzzer.Tone(Af4, 250);
+    Buzzer.Tone(G4, 250);
+    Buzzer.Tone(F4, 250);
+    Buzzer.Tone(D4, 125);
+    Buzzer.Tone(F4, 125);
+    Buzzer.Tone(G4, 125);
+
+    Buzzer.Tone(B3, 125);
+    Buzzer.Tone(B3, 125);
+    Buzzer.Tone(D5, 125);
+    Sleep(125);
+    Buzzer.Tone(C5, 250);
+    Sleep(125);
+    Buzzer.Tone(A4, 250);
+    Buzzer.Tone(Af4, 250);
+    Buzzer.Tone(G4, 250);
+    Buzzer.Tone(F4, 250);
+    Buzzer.Tone(D4, 125);
+    Buzzer.Tone(F4, 125);
+    Buzzer.Tone(G4, 125);
+
+    Buzzer.Tone(Bf3, 125);
+    Buzzer.Tone(Bf3, 125);
+    Buzzer.Tone(D5, 125);
+    Sleep(125);
+    Buzzer.Tone(C5, 250);
+    Sleep(125);
+    Buzzer.Tone(A4, 250);
+    Buzzer.Tone(Af4, 250);
+    Buzzer.Tone(G4, 250);
+    Buzzer.Tone(F4, 250);
+    Buzzer.Tone(D4, 125);
+    Buzzer.Tone(F4, 125);
+    Buzzer.Tone(G4, 125);
+
+    Sleep(500);
+
+    Buzzer.Tone(F4, 149);
+    Buzzer.Tone(Gs4, 149);
+    Buzzer.Tone(As4, 149);
+    Buzzer.Tone(As4, 447);
+    Buzzer.Tone(Gs4, 298);
+    Sleep(596);
+
+    Sleep(596);
+    Buzzer.Tone(F4, 149);
+    Buzzer.Tone(Gs4, 149);
+    Buzzer.Tone(As4, 149);
+    Buzzer.Tone(As4, 447);
+    Buzzer.Tone(Gs4, 298);
+    Buzzer.Tone(F4, 298);
+    Buzzer.Tone(Ef4, 149);
+    Buzzer.Tone(F4, 149);
 
 }
