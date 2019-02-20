@@ -30,11 +30,32 @@ void runDiagnostics();
 //Check that all motors and input ports are working correctly
 void SansUndertale();
 //Does what you'd expect
+void PIDDrive(float distance, float expectedSpeed);
+//Attempt at a PID driving system
+void resetPIDVariables();
+//Resets the vaiables
+float rightPIDAdjustment(float expectedSpeed);
+//Returns the corrected speed for the motors
+float leftPIDAdjustment(float expectedSpeed);
 
 #define INITIAL_TURN_ANGLE 90
 #define ALIGN_WITH_LEVER_ANGLE 20
 #define DISTANCE_TO_RAMP 0
 #define DISTANCE_TO_LEVEL 0
+#define PCONST .75
+#define ICONST .07
+#define DCONST .25
+
+
+float lPreviousTime,rPreviousTime;
+int rightPreviousCounts,leftPreviousCounts;
+float rightActualVelocity, leftActualVelocity;
+float expectedVelocity;
+float lPTerm,lITerm,lDTerm,rPTerm,rITerm,rDTerm;
+float leftPreviousError,rightPreviousError;
+float rErrorSum,lErrorSum;
+float rOldMotorPower,lOldMotorPower;
+
 
 int main(void)
 {
@@ -43,10 +64,9 @@ int main(void)
     tinyServo.SetMax(2470);
     tinyServo.SetDegree(90);
 
-    while(cds.Value()>.5);
-
-
-
+    //while(cds.Value()>.5);
+    //runDiagnostics();
+    PIDDrive(40,6);
 
 
 
@@ -393,4 +413,74 @@ void SansUndertale()
     Buzzer.Tone(FEHBuzzer::Ef4, 149);
     Buzzer.Tone(FEHBuzzer::F4, 149);
 
+}
+
+void PIDDrive(float distance, float expectedSpeed){
+    resetPIDVariables();
+    while(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) < distance || ((rightEncoder.Counts() / 318) * CIRCUMFRENCE) < distance){
+        rightMotor.SetPercent(rightPIDAdjustment(expectedSpeed));
+        leftMotor.SetPercent(-leftPIDAdjustment(expectedSpeed));
+        Sleep(200);
+    }
+    rightMotor.Stop();
+    leftMotor.Stop();
+}
+
+float rightPIDAdjustment(float expectedSpeed){
+    int currentCounts=rightEncoder.Counts();
+    int countDiff=currentCounts-rightPreviousCounts;
+    float currentTime = TimeNow();
+    float timeDiff = currentTime-rPreviousTime;
+    rightActualVelocity=(CIRCUMFRENCE/318)*(countDiff/timeDiff);
+    float currentError = expectedSpeed - rightActualVelocity;
+    rErrorSum+=currentError;
+    rPTerm = currentError * PCONST;
+    rITerm = rErrorSum * ICONST;
+    rDTerm = (currentError - rightPreviousError) * DCONST;
+    rPreviousTime=currentTime;
+    rightPreviousError=currentError;
+    rightPreviousCounts=currentCounts;
+    rOldMotorPower += (rPTerm+rITerm+rDTerm);
+    return rOldMotorPower;
+
+}
+
+float leftPIDAdjustment(float expectedSpeed){
+    int currentCounts=leftEncoder.Counts();
+    int countDiff=currentCounts-leftPreviousCounts;
+    float currentTime = TimeNow();
+    float timeDiff = currentTime-lPreviousTime;
+    leftActualVelocity=(CIRCUMFRENCE/318)*(countDiff/timeDiff);
+    float currentError = expectedSpeed - leftActualVelocity;
+    lErrorSum+=currentError;
+    lPTerm = currentError * PCONST;
+    lITerm = lErrorSum * ICONST;
+    lDTerm = (currentError - leftPreviousError) * DCONST;
+    lPreviousTime=currentTime;
+    leftPreviousError=currentError;
+    leftPreviousCounts=currentCounts;
+    lOldMotorPower += (lPTerm+lITerm+lDTerm);
+    return lOldMotorPower;
+}
+
+void resetPIDVariables(){
+    rPreviousTime=0;
+    lPreviousTime=0;
+    rightPreviousCounts = 0;
+    leftPreviousCounts=0;
+    rightActualVelocity=0;
+    leftActualVelocity=0;
+    expectedVelocity=0;
+    rErrorSum=0;
+    lErrorSum=0;
+    lPTerm=0;
+    lITerm=0;
+    lDTerm=0;
+    rPTerm=0;
+    rITerm=0;
+    rDTerm=0;
+    leftPreviousError=0;
+    rightPreviousError=0;
+    rOldMotorPower=0;
+    lOldMotorPower=0;
 }
