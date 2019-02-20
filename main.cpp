@@ -8,7 +8,7 @@
 
 #define PI 3.1415926
 #define CIRCUMFRENCE 7.8
-#define WHEEL_TO_WHEEL_WIDTH 8.375
+#define WHEEL_TO_WHEEL_WIDTH 7.5
 
 FEHMotor rightMotor(FEHMotor::Motor0,9.0);
 FEHMotor leftMotor(FEHMotor::Motor1,9.0);
@@ -43,12 +43,6 @@ int main(void)
     tinyServo.SetMax(2470);
     tinyServo.SetDegree(90);
 
-    rightMotor.SetPercent(18);
-    leftMotor.SetPercent(-18);
-    Sleep(7.5);
-
-    Move(95,1);
-    Move(25,12);
 
 
 
