@@ -7,7 +7,7 @@
 #include <FEHBuzzer.h>
 
 #define PI 3.1415926
-#define CIRCUMFRENCE 7.8
+#define CIRCUMFRENCE 7.85
 #define WHEEL_TO_WHEEL_WIDTH 7.5
 
 FEHMotor rightMotor(FEHMotor::Motor0,9.0);
@@ -42,9 +42,9 @@ float leftPIDAdjustment(float expectedSpeed);
 #define ALIGN_WITH_LEVER_ANGLE 20
 #define DISTANCE_TO_RAMP 0
 #define DISTANCE_TO_LEVEL 0
-#define PCONST .75
-#define ICONST .07
-#define DCONST .25
+#define PCONST .8
+#define ICONST .15
+#define DCONST .3
 
 
 float lPreviousTime,rPreviousTime;
@@ -64,9 +64,41 @@ int main(void)
     tinyServo.SetMax(2470);
     tinyServo.SetDegree(90);
 
-    //while(cds.Value()>.5);
+    while(cds.Value()>.5);
     //runDiagnostics();
-    PIDDrive(40,6);
+    //First move away from box
+    Move(25,7);
+
+    //Turn to be "perpendicular" to wall
+    Turn(true,33,40);
+
+    //Move to ramp spot
+    Move(25,15);
+
+    //Turn to ramp
+    Turn(true,33,-90);
+
+    //YEET
+    PIDDrive(20,12); //Up Ramp
+
+    //After getting up ramp, move forward
+    Move(25,28);
+
+    //Turn to lever
+    Turn(true,33,90);
+
+    //Move to lever
+    Move(25,-20);
+
+    //Whack Lever
+    tinyServo.SetDegree(25);
+
+    //Escape Plan
+
+    Turn(true, 32, -65);
+    Move(25, -4);
+    Turn(true, 32, -25);
+    Move(40, -25);
 
 
 
@@ -125,14 +157,14 @@ void Move(int percent, float distance)
         rightCountsRatio = leftCounts / rightCounts; //used to determine magnitude of speed cut if one motor is moving faster, roughly
         leftCountsRatio = rightCounts / leftCounts;
 
-        if(rightCounts > leftCounts + 30)
+        if(rightCounts > leftCounts + 10)
         {
             rightMotor.SetPercent((rightCoeff*powerPercent)*rightCountsRatio);
             leftMotor.SetPercent(leftCoeff*powerPercent);
             LCD.WriteLine("Turn right");
         }
 
-        else if(leftCounts > rightCounts + 30)
+        else if(leftCounts > rightCounts + 10)
         {
             rightMotor.SetPercent(rightCoeff*powerPercent);
             leftMotor.SetPercent((leftCoeff*powerPercent)*leftCountsRatio);
@@ -420,7 +452,7 @@ void PIDDrive(float distance, float expectedSpeed){
     while(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) < distance || ((rightEncoder.Counts() / 318) * CIRCUMFRENCE) < distance){
         rightMotor.SetPercent(rightPIDAdjustment(expectedSpeed));
         leftMotor.SetPercent(-leftPIDAdjustment(expectedSpeed));
-        Sleep(200);
+        Sleep(100);
     }
     rightMotor.Stop();
     leftMotor.Stop();
