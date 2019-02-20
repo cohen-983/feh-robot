@@ -7,7 +7,7 @@
 #include <FEHBuzzer.h>
 
 #define PI 3.1415926
-#define CIRCUMFRENCE 7.853975
+#define CIRCUMFRENCE 7.8
 #define WHEEL_TO_WHEEL_WIDTH 8.375
 
 FEHMotor rightMotor(FEHMotor::Motor0,9.0);
@@ -31,25 +31,41 @@ void runDiagnostics();
 void SansUndertale();
 //Does what you'd expect
 
-
+#define INITIAL_TURN_ANGLE 90
+#define ALIGN_WITH_LEVER_ANGLE 20
+#define DISTANCE_TO_RAMP 0
+#define DISTANCE_TO_LEVEL 0
 
 int main(void)
 {
+    float x,y;
+    tinyServo.SetMin(540);
+    tinyServo.SetMax(2470);
+    tinyServo.SetDegree(90);
 
-    SansUndertale();
-    Move(15,12);
-    Turn(true,25,90);
+    rightMotor.SetPercent(18);
+    leftMotor.SetPercent(-18);
+    Sleep(7.5);
+
+    Move(95,1);
+    Move(25,12);
+
+
+
+
+
+
 
 }
 
 /*
     Code to move robot in a straight line
 */
-void Move(int x, float y)
+void Move(int percent, float distance)
 {
-    int powerPercent = x;
-    float distanceToMove = y;
-    bool negativeDistance = false;
+    int powerPercent = percent;
+    float distanceToMove = distance;
+    bool negativeDistance = false,rightDone=false,leftDone=false;
     float rotations = 0;
     int encoderTicks = 0;
 
@@ -93,16 +109,18 @@ void Move(int x, float y)
         rightCountsRatio = leftCounts / rightCounts; //used to determine magnitude of speed cut if one motor is moving faster, roughly
         leftCountsRatio = rightCounts / leftCounts;
 
-        if(rightCounts > leftCounts)
+        if(rightCounts > leftCounts + 30)
         {
             rightMotor.SetPercent((rightCoeff*powerPercent)*rightCountsRatio);
             leftMotor.SetPercent(leftCoeff*powerPercent);
+            LCD.WriteLine("Turn right");
         }
 
-        else if(leftCounts < rightCounts)
+        else if(leftCounts > rightCounts + 30)
         {
             rightMotor.SetPercent(rightCoeff*powerPercent);
             leftMotor.SetPercent((leftCoeff*powerPercent)*leftCountsRatio);
+            LCD.WriteLine("Turn Left");
         }
 
         else if(leftCounts == rightCounts)
@@ -111,34 +129,20 @@ void Move(int x, float y)
             leftMotor.SetPercent(leftCoeff*powerPercent);
         }
 
-        if(rightCounts >= encoderTicks || leftCounts >= encoderTicks)
-        // if either motor is past the threshold, stop the move and balance it out at the finish
-        {
-            rightMotor.Stop(); //stop them
-            leftMotor.Stop();
-            while(rightCounts != leftCounts) // then verify that they went the same distance
-            {
-                leftCounts = leftEncoder.Counts();
-                LCD.WriteLine(leftCounts); //TESTING
-                rightCounts = rightEncoder.Counts();
-                LCD.WriteLine(rightCounts);//TESTING
-
-                if(rightCounts > leftCounts) // if not, balance it out
-                {
-                    leftMotor.SetPercent(leftCoeff*powerPercent);
-                    rightMotor.Stop();
-                }
-                else if(leftCounts > rightCounts)
-                {
-                    rightMotor.SetPercent(rightCoeff*powerPercent);
-                    leftMotor.Stop();
-                }
-            }
+        /***************************************
+         * Trying to eliminate end variablility*
+         * *************************************/
+        if(rightCounts >= encoderTicks){
             rightMotor.Stop();
+            rightDone=true;
+        }
+        if(leftCounts >= encoderTicks){
             leftMotor.Stop();
-            rightEncoder.ResetCounts();
-            leftEncoder.ResetCounts();
-            moveComplete = true;
+            leftDone=true;
+        }
+
+        if(leftDone && rightDone){
+            moveComplete=true;
         }
     }
 }
@@ -301,7 +305,7 @@ void runDiagnostics(){
     rightEncoder.ResetCounts();
 
     LCD.WriteLine("Running left Motor");
-    leftMotor.SetPercent(15);
+    leftMotor.SetPercent(-15);
     Sleep(1.0);
     leftMotor.Stop();
     LCD.Write("Right Encoder Value: ");
@@ -316,81 +320,81 @@ void runDiagnostics(){
     //CdS cell
 }
 
-void SansUndertale
+void SansUndertale()
 {
-    Buzzer.Tone(D4, 125);
-    Buzzer.Tone(D4, 125);
-    Buzzer.Tone(D5, 125);
+    Buzzer.Tone(FEHBuzzer::D4, 125);
+    Buzzer.Tone(FEHBuzzer::D4, 125);
+    Buzzer.Tone(FEHBuzzer::D5, 125);
     Sleep(125);
-    Buzzer.Tone(C5, 250);
+    Buzzer.Tone(FEHBuzzer::C5, 250);
     Sleep(125);
-    Buzzer.Tone(A4, 250);
-    Buzzer.Tone(Af4, 250);
-    Buzzer.Tone(G4, 250);
-    Buzzer.Tone(F4, 250);
-    Buzzer.Tone(D4, 125);
-    Buzzer.Tone(F4, 125);
-    Buzzer.Tone(G4, 125);
+    Buzzer.Tone(FEHBuzzer::A4, 250);
+    Buzzer.Tone(FEHBuzzer::Af4, 250);
+    Buzzer.Tone(FEHBuzzer::G4, 250);
+    Buzzer.Tone(FEHBuzzer::F4, 250);
+    Buzzer.Tone(FEHBuzzer::D4, 125);
+    Buzzer.Tone(FEHBuzzer::F4, 125);
+    Buzzer.Tone(FEHBuzzer::G4, 125);
     //Dear god, this is a lot of work, that was one measure.
-    Buzzer.Tone(C4, 125);
-    Buzzer.Tone(C4, 125);
-    Buzzer.Tone(D5, 125);
+    Buzzer.Tone(FEHBuzzer::C4, 125);
+    Buzzer.Tone(FEHBuzzer::C4, 125);
+    Buzzer.Tone(FEHBuzzer::D5, 125);
     Sleep(125);
-    Buzzer.Tone(C5, 250);
+    Buzzer.Tone(FEHBuzzer::C5, 250);
     Sleep(125);
-    Buzzer.Tone(A4, 250);
-    Buzzer.Tone(Af4, 250);
-    Buzzer.Tone(G4, 250);
-    Buzzer.Tone(F4, 250);
-    Buzzer.Tone(D4, 125);
-    Buzzer.Tone(F4, 125);
-    Buzzer.Tone(G4, 125);
+    Buzzer.Tone(FEHBuzzer::A4, 250);
+    Buzzer.Tone(FEHBuzzer::Af4, 250);
+    Buzzer.Tone(FEHBuzzer::G4, 250);
+    Buzzer.Tone(FEHBuzzer::F4, 250);
+    Buzzer.Tone(FEHBuzzer::D4, 125);
+    Buzzer.Tone(FEHBuzzer::F4, 125);
+    Buzzer.Tone(FEHBuzzer::G4, 125);
 
-    Buzzer.Tone(B3, 125);
-    Buzzer.Tone(B3, 125);
-    Buzzer.Tone(D5, 125);
+    Buzzer.Tone(FEHBuzzer::B3, 125);
+    Buzzer.Tone(FEHBuzzer::B3, 125);
+    Buzzer.Tone(FEHBuzzer::D5, 125);
     Sleep(125);
-    Buzzer.Tone(C5, 250);
+    Buzzer.Tone(FEHBuzzer::C5, 250);
     Sleep(125);
-    Buzzer.Tone(A4, 250);
-    Buzzer.Tone(Af4, 250);
-    Buzzer.Tone(G4, 250);
-    Buzzer.Tone(F4, 250);
-    Buzzer.Tone(D4, 125);
-    Buzzer.Tone(F4, 125);
-    Buzzer.Tone(G4, 125);
+    Buzzer.Tone(FEHBuzzer::A4, 250);
+    Buzzer.Tone(FEHBuzzer::Af4, 250);
+    Buzzer.Tone(FEHBuzzer::G4, 250);
+    Buzzer.Tone(FEHBuzzer::F4, 250);
+    Buzzer.Tone(FEHBuzzer::D4, 125);
+    Buzzer.Tone(FEHBuzzer::F4, 125);
+    Buzzer.Tone(FEHBuzzer::G4, 125);
 
-    Buzzer.Tone(Bf3, 125);
-    Buzzer.Tone(Bf3, 125);
-    Buzzer.Tone(D5, 125);
+    Buzzer.Tone(FEHBuzzer::Bf3, 125);
+    Buzzer.Tone(FEHBuzzer::Bf3, 125);
+    Buzzer.Tone(FEHBuzzer::D5, 125);
     Sleep(125);
-    Buzzer.Tone(C5, 250);
+    Buzzer.Tone(FEHBuzzer::C5, 250);
     Sleep(125);
-    Buzzer.Tone(A4, 250);
-    Buzzer.Tone(Af4, 250);
-    Buzzer.Tone(G4, 250);
-    Buzzer.Tone(F4, 250);
-    Buzzer.Tone(D4, 125);
-    Buzzer.Tone(F4, 125);
-    Buzzer.Tone(G4, 125);
+    Buzzer.Tone(FEHBuzzer::A4, 250);
+    Buzzer.Tone(FEHBuzzer::Af4, 250);
+    Buzzer.Tone(FEHBuzzer::G4, 250);
+    Buzzer.Tone(FEHBuzzer::F4, 250);
+    Buzzer.Tone(FEHBuzzer::D4, 125);
+    Buzzer.Tone(FEHBuzzer::F4, 125);
+    Buzzer.Tone(FEHBuzzer::G4, 125);
 
     Sleep(500);
 
-    Buzzer.Tone(F4, 149);
-    Buzzer.Tone(Gs4, 149);
-    Buzzer.Tone(As4, 149);
-    Buzzer.Tone(As4, 447);
-    Buzzer.Tone(Gs4, 298);
+    Buzzer.Tone(FEHBuzzer::F4, 149);
+    Buzzer.Tone(FEHBuzzer::Gs4, 149);
+    Buzzer.Tone(FEHBuzzer::As4, 149);
+    Buzzer.Tone(FEHBuzzer::As4, 447);
+    Buzzer.Tone(FEHBuzzer::Gs4, 298);
     Sleep(596);
 
     Sleep(596);
-    Buzzer.Tone(F4, 149);
-    Buzzer.Tone(Gs4, 149);
-    Buzzer.Tone(As4, 149);
-    Buzzer.Tone(As4, 447);
-    Buzzer.Tone(Gs4, 298);
-    Buzzer.Tone(F4, 298);
-    Buzzer.Tone(Ef4, 149);
-    Buzzer.Tone(F4, 149);
+    Buzzer.Tone(FEHBuzzer::F4, 149);
+    Buzzer.Tone(FEHBuzzer::Gs4, 149);
+    Buzzer.Tone(FEHBuzzer::As4, 149);
+    Buzzer.Tone(FEHBuzzer::As4, 447);
+    Buzzer.Tone(FEHBuzzer::Gs4, 298);
+    Buzzer.Tone(FEHBuzzer::F4, 298);
+    Buzzer.Tone(FEHBuzzer::Ef4, 149);
+    Buzzer.Tone(FEHBuzzer::F4, 149);
 
 }
