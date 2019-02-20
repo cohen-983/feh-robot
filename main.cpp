@@ -43,6 +43,8 @@ int main(void)
     tinyServo.SetMax(2470);
     tinyServo.SetDegree(90);
 
+    while(cds.Value()>.5);
+
 
 
 
