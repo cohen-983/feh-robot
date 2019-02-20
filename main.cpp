@@ -42,10 +42,9 @@ float leftPIDAdjustment(float expectedSpeed);
 #define ALIGN_WITH_LEVER_ANGLE 20
 #define DISTANCE_TO_RAMP 0
 #define DISTANCE_TO_LEVEL 0
-#define PCONST .8
-#define ICONST .15
-#define DCONST .3
-
+#define PCONST .75
+#define ICONST .1
+#define DCONST .25
 
 float lPreviousTime,rPreviousTime;
 int rightPreviousCounts,leftPreviousCounts;
@@ -99,6 +98,7 @@ int main(void)
     Move(25, -4);
     Turn(true, 32, -25);
     Move(40, -25);
+
 
 
 
@@ -449,13 +449,17 @@ void SansUndertale()
 
 void PIDDrive(float distance, float expectedSpeed){
     resetPIDVariables();
-    while(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) < distance || ((rightEncoder.Counts() / 318) * CIRCUMFRENCE) < distance){
+    while(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) < distance && ((rightEncoder.Counts() / 318) * CIRCUMFRENCE) < distance){
         rightMotor.SetPercent(rightPIDAdjustment(expectedSpeed));
         leftMotor.SetPercent(-leftPIDAdjustment(expectedSpeed));
         Sleep(100);
     }
-    rightMotor.Stop();
-    leftMotor.Stop();
+    if(((rightEncoder.Counts() / 318) * CIRCUMFRENCE) >= distance){
+        rightMotor.Stop();
+    }
+    if(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) >= distance){
+        leftMotor.Stop();
+    }
 }
 
 float rightPIDAdjustment(float expectedSpeed){
