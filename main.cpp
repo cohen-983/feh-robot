@@ -5,6 +5,7 @@
 #include <FEHServo.h>
 #include <FEHRPS.h>
 #include <FEHBuzzer.h>
+#include <FEHBattery.h>
 
 #define PI 3.1415926
 #define CIRCUMFRENCE 7.85
@@ -43,7 +44,7 @@ float leftPIDAdjustment(float expectedSpeed);
 #define DISTANCE_TO_RAMP 0
 #define DISTANCE_TO_LEVEL 0
 #define PCONST .75
-#define ICONST .1
+#define ICONST .25
 #define DCONST .25
 
 float lPreviousTime,rPreviousTime;
@@ -63,41 +64,45 @@ int main(void)
     tinyServo.SetMax(2470);
     tinyServo.SetDegree(90);
 
+    LCD.WriteLine(Battery.Voltage());
     while(cds.Value()>.5);
     //runDiagnostics();
     //First move away from box
     Move(25,7);
 
     //Turn to be "perpendicular" to wall
-    Turn(true,33,40);
+    Turn(true,20,43);
 
     //Move to ramp spot
-    Move(25,15);
+    Move(25,16);
 
     //Turn to ramp
-    Turn(true,33,-90);
+    Turn(true,20,-88);
 
     //YEET
-    PIDDrive(20,12); //Up Ramp
+    PIDDrive(21,7); //Up Ramp
 
     //After getting up ramp, move forward
-    Move(25,28);
+    Move(15,26.3);
 
     //Turn to lever
-    Turn(true,33,90);
+    Turn(true,20,91);
 
     //Move to lever
-    Move(25,-20);
+    Move(25,-17.5);
 
     //Whack Lever
-    tinyServo.SetDegree(25);
+    tinyServo.SetDegree(20);
 
     //Escape Plan
 
-    Turn(true, 32, -65);
-    Move(25, -4);
-    Turn(true, 32, -25);
-    Move(40, -25);
+    Move(25,16.5);
+    tinyServo.SetDegree(90);
+
+    Turn(true,20,-87);
+    Move(15,-4);
+    Turn(true,20,181.7);
+    PIDDrive(60,5);
 
 
 
@@ -111,6 +116,7 @@ int main(void)
 */
 void Move(int percent, float distance)
 {
+    float startTime=TimeNow();
     int powerPercent = percent;
     float distanceToMove = distance;
     bool negativeDistance = false,rightDone=false,leftDone=false;
@@ -157,14 +163,14 @@ void Move(int percent, float distance)
         rightCountsRatio = leftCounts / rightCounts; //used to determine magnitude of speed cut if one motor is moving faster, roughly
         leftCountsRatio = rightCounts / leftCounts;
 
-        if(rightCounts > leftCounts + 10)
+        if(rightCounts > leftCounts + 5)
         {
             rightMotor.SetPercent((rightCoeff*powerPercent)*rightCountsRatio);
             leftMotor.SetPercent(leftCoeff*powerPercent);
             LCD.WriteLine("Turn right");
         }
 
-        else if(leftCounts > rightCounts + 10)
+        else if(leftCounts > rightCounts + 5)
         {
             rightMotor.SetPercent(rightCoeff*powerPercent);
             leftMotor.SetPercent((leftCoeff*powerPercent)*leftCountsRatio);
@@ -192,6 +198,10 @@ void Move(int percent, float distance)
         if(leftDone && rightDone){
             moveComplete=true;
         }
+        if(TimeNow()-startTime >= 30){
+            moveComplete=true;
+        }
+
     }
 }
 
@@ -449,17 +459,23 @@ void SansUndertale()
 
 void PIDDrive(float distance, float expectedSpeed){
     resetPIDVariables();
-    while(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) < distance && ((rightEncoder.Counts() / 318) * CIRCUMFRENCE) < distance){
+    while(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) < distance || ((rightEncoder.Counts() / 318) * CIRCUMFRENCE) < distance){
         rightMotor.SetPercent(rightPIDAdjustment(expectedSpeed));
         leftMotor.SetPercent(-leftPIDAdjustment(expectedSpeed));
-        Sleep(100);
+        Sleep(25);
+        LCD.Clear();
+        if(((rightEncoder.Counts() / 318) * CIRCUMFRENCE) >= distance){
+            rightMotor.Stop();
+        }
+        if(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) >= distance){
+            leftMotor.Stop();
+        }
     }
-    if(((rightEncoder.Counts() / 318) * CIRCUMFRENCE) >= distance){
-        rightMotor.Stop();
-    }
-    if(((leftEncoder.Counts() / 318) * CIRCUMFRENCE) >= distance){
-        leftMotor.Stop();
-    }
+    LCD.WriteLine("DONE");
+    LCD.Write("Right encoder value: ");
+    LCD.WriteLine(rightEncoder.Counts());
+    LCD.WriteLine(leftEncoder.Counts());
+
 }
 
 float rightPIDAdjustment(float expectedSpeed){
@@ -476,7 +492,10 @@ float rightPIDAdjustment(float expectedSpeed){
     rPreviousTime=currentTime;
     rightPreviousError=currentError;
     rightPreviousCounts=currentCounts;
+
     rOldMotorPower += (rPTerm+rITerm+rDTerm);
+
+    LCD.WriteLine(currentCounts);
     return rOldMotorPower;
 
 }
@@ -496,10 +515,13 @@ float leftPIDAdjustment(float expectedSpeed){
     leftPreviousError=currentError;
     leftPreviousCounts=currentCounts;
     lOldMotorPower += (lPTerm+lITerm+lDTerm);
+    LCD.WriteLine(currentCounts);
     return lOldMotorPower;
 }
 
 void resetPIDVariables(){
+    leftEncoder.ResetCounts();
+    rightEncoder.ResetCounts();
     rPreviousTime=0;
     lPreviousTime=0;
     rightPreviousCounts = 0;
