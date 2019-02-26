@@ -44,6 +44,8 @@ void waitForLight(){
     while(cds.Value()>.5);
 }
 
+void alignToWall(float percent);
+
 #define INITIAL_TURN_ANGLE 90
 #define ALIGN_WITH_LEVER_ANGLE 20
 #define DISTANCE_TO_RAMP 0
@@ -73,26 +75,42 @@ int main(void)
     LCD.WriteLine(Battery.Voltage());
 
 
-    PIDDrive(24,5); //Move out of box
-    //Move(25, 24);
-    //Turn(true,20,43); //Perp to wall
+    waitForLight();
 
+    PIDDrive(1.3,3);
 
-    while (true){
-        LCD.WriteLine(cds.Value());
-        Sleep(250);
+    Turn(true,20,50); //Perp to wall
+    PIDDrive(12,5); //Get to light
+
+    //Read Light
         if(cds.Value()<.5){
-            LCD.SetBackgroundColor(SCARLET);
+            LCD.WriteLine("SCARLET");
+            Turn(true,20,90);
+            Move(15,4);
+            Move(15,-5);
+            Turn(true,20,-90);
+            PIDDrive(5,5);
         }
         else if(cds.Value()>.5 && cds.Value()<1){
-            LCD.SetBackgroundColor(BLUE);
+            LCD.WriteLine("BLUE");
+            PIDDrive(5,5);
+            Turn(true,20,90);
+            Move(15,4);
+            Move(15,-5);
+            Turn(true,20,-90);
+
         }
-        else{
-            LCD.SetBackgroundColor(BLACK);
-        }
-        LCD.Clear();
-        Sleep(250);
-    }
+        PIDDrive(1.5,3);
+        Turn(true,20,-90);
+        //At this point, the robot is facing the ramp
+        PIDDrive(39.75,4); //Get up ramp
+        Turn(true,20,-90);
+        alignToWall(-25);
+        PIDDrive(5,3);
+        Turn(true,20,-90);
+        Move(25,-8);
+
+
 //
 //    //runDiagnostics();
 //    //First move away from box
@@ -131,11 +149,6 @@ int main(void)
 //    Move(15,-4);
 //    Turn(true,20,181.7);
 //    PIDDrive(60,5);
-
-
-
-
-
 
 }
 
@@ -226,7 +239,7 @@ void Move(int percent, float distance)
         if(leftDone && rightDone){
             moveComplete=true;
         }
-        if(TimeNow()-startTime >= 30){
+        if(TimeNow()-startTime >= 6){
             moveComplete=true;
         }
 
@@ -338,6 +351,14 @@ void Turn(bool t, int x, float y)
                 rightMotor.Stop(); //actually stop them, suspiciously missing in earlier revisions.
                 leftMotor.Stop();*/ //I say, like it wasn't my fault in those revisions.
             if(leftDone && rightDone){
+
+                //Ensure turn is accurate
+                LCD.Write("Right Encoder Counts: " );
+                LCD.WriteLine(rightEncoder.Counts());
+                LCD.Write("Left Encoder Counts: ");
+                LCD.WriteLine(leftEncoder.Counts());
+                //Testing code
+
                 rightEncoder.ResetCounts();
                 leftEncoder.ResetCounts();
                 moveComplete = true;
@@ -348,7 +369,7 @@ void Turn(bool t, int x, float y)
     { //fortunately with only one wheel moving here, the speed balancing code is irrelevant. Knock on digital wood.
         if(negativeAngle == false)
         {
-            leftMotor.SetPercent(leftCoeff*powerPercent);
+            leftMotor.SetPercent(-leftCoeff*powerPercent);
             rightMotor.Stop(); //just to make like, triple sure.
             while(moveComplete == false)
             {
@@ -367,7 +388,7 @@ void Turn(bool t, int x, float y)
             leftMotor.Stop(); //makin sure
             while(moveComplete == false)
             {
-                rightCounts = leftEncoder.Counts();
+                rightCounts = rightEncoder.Counts();
                 if(rightCounts >= encoderTicks)
                 {
                     rightMotor.Stop();
@@ -575,4 +596,15 @@ void resetPIDVariables(){
     rightPreviousError=0;
     rOldMotorPower=0;
     lOldMotorPower=0;
+}
+
+void alignToWall(float percent){
+    float startTime = TimeNow();
+    leftMotor.SetPercent(-(percent));
+    rightMotor.SetPercent(percent);
+
+    if(TimeNow()-startTime > 5){
+        leftMotor.Stop();
+        rightMotor.Stop();
+    }
 }
