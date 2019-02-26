@@ -20,7 +20,7 @@ DigitalEncoder leftEncoder(FEHIO::P0_1);
 
 AnalogInputPin cds(FEHIO::P1_0);
 
-FEHServo tinyServo(FEHServo::Servo0);
+FEHServo stickOfDestiny(FEHServo::Servo0);
 
 
 void Move(int pow, float dis);
@@ -67,9 +67,9 @@ float rOldMotorPower,lOldMotorPower;
 int main(void)
 {
     float x,y;
-    tinyServo.SetMin(540);
-    tinyServo.SetMax(2470);
-    tinyServo.SetDegree(90);
+    stickOfDestiny.SetMin(540);
+    stickOfDestiny.SetMax(2470);
+    stickOfDestiny.SetDegree(90);
 
 
     LCD.WriteLine(Battery.Voltage());
@@ -86,7 +86,7 @@ int main(void)
         if(cds.Value()<.5){
             LCD.WriteLine("SCARLET");
             Turn(true,20,90);
-            Move(15,4);
+            Move(17,4);
             Move(15,-5);
             Turn(true,20,-90);
             PIDDrive(5,5);
@@ -95,20 +95,20 @@ int main(void)
             LCD.WriteLine("BLUE");
             PIDDrive(5,5);
             Turn(true,20,90);
-            Move(15,4);
+            Move(17,4);
             Move(15,-5);
             Turn(true,20,-90);
 
         }
-        PIDDrive(1.5,3);
+        PIDDrive(2,3);
         Turn(true,20,-90);
         //At this point, the robot is facing the ramp
-        PIDDrive(39.75,4); //Get up ramp
-        Turn(true,20,-90);
-        alignToWall(-25);
-        PIDDrive(5,3);
-        Turn(true,20,-90);
-        Move(25,-8);
+        PIDDrive(29,6); //Get up ramp
+        Move(16,10);
+        Turn(true,20,178.5);
+        Move(25,-12);
+
+        stickOfDestiny.SetDegree(35);
 
 
 //
