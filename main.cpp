@@ -21,6 +21,7 @@ DigitalEncoder leftEncoder(FEHIO::P0_1);
 AnalogInputPin cds(FEHIO::P1_0);
 
 FEHServo stickOfDestiny(FEHServo::Servo0);
+FEHServo bigBoy(FEHServo::Servo7);
 
 
 void Move(int pow, float dis);
@@ -46,23 +47,22 @@ void waitForLight(){
 
 void moveToLight(){
     PIDDrive(1.3,3);//move from starting light
-    Turn(true,20,50); //Perp to wall
-    PIDDrive(12,5); //Get to light
+    Turn(true,20,47); //Perp to wall
+    PIDDrive(12.3,5); //Get to light
 }
 
 void pressCorrectButton(){
     //Read Light
-        if(cds.Value()<.5){
-            LCD.WriteLine("SCARLET");
-            Turn(true,20,90);
+        if(cds.Value()<.45){
+            LCD.SetBackgroundColor(SCARLET);
+            Turn(true,20,92);
             Move(17,4);
             Move(15,-5);
             Turn(true,20,-90);
             PIDDrive(5,5);
-        }
-        else{
-            LCD.WriteLine("BLUE");
-            PIDDrive(5,5);
+        } else{
+            LCD.SetBackgroundColor(BLUE);    //FIX SLIPPAGE
+            PIDDrive(5.5,5);
             Turn(true,20,90);
             Move(17,4);
             Move(15,-5);
@@ -70,7 +70,7 @@ void pressCorrectButton(){
 
         }
         PIDDrive(2.35,3);
-        Turn(true,20,-90);
+        Turn(true,20,-94);
 }
 
 #define INITIAL_TURN_ANGLE 90
@@ -78,7 +78,7 @@ void pressCorrectButton(){
 #define DISTANCE_TO_RAMP 0
 #define DISTANCE_TO_LEVEL 0
 #define PCONST .75
-#define ICONST .25
+#define ICONST .15
 #define DCONST .25
 
 float lPreviousTime,rPreviousTime;
@@ -98,22 +98,27 @@ int main(void)
     stickOfDestiny.SetMax(2470);
     stickOfDestiny.SetDegree(90);
 
-
+    bigBoy.SetMin(510);
+    bigBoy.SetMax(2500);
     LCD.WriteLine(Battery.Voltage());
 
+//    bigBoy.SetDegree(90);
+//    Sleep(1.0);
+//    bigBoy.SetDegree(180);
+//    Sleep(1.0);
+//    bigBoy.SetDegree(0);
 
     waitForLight();
     moveToLight();
     pressCorrectButton();
 
+    //At this point, the robot is facing the ramp
+    PIDDrive(29,6); //Get up ramp
+    Move(16,10);
+    Turn(true,20,178.5);
+    Move(25,-12);
+    stickOfDestiny.SetDegree(0);
 
-
-        //At this point, the robot is facing the ramp
-        PIDDrive(29,6); //Get up ramp
-        Move(16,10);
-        Turn(true,20,178.5);
-        Move(25,-12);
-        stickOfDestiny.SetDegree(0);
 
 
 }
@@ -560,6 +565,6 @@ void resetPIDVariables(){
     rDTerm=0;
     leftPreviousError=0;
     rightPreviousError=0;
-    rOldMotorPower=0;
-    lOldMotorPower=15;
+    rOldMotorPower=5;
+    lOldMotorPower=5;
 }
