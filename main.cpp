@@ -44,7 +44,34 @@ void waitForLight(){
     while(cds.Value()>.5);
 }
 
-void alignToWall(float percent);
+void moveToLight(){
+    PIDDrive(1.3,3);//move from starting light
+    Turn(true,20,50); //Perp to wall
+    PIDDrive(12,5); //Get to light
+}
+
+void pressCorrectButton(){
+    //Read Light
+        if(cds.Value()<.5){
+            LCD.WriteLine("SCARLET");
+            Turn(true,20,90);
+            Move(17,4);
+            Move(15,-5);
+            Turn(true,20,-90);
+            PIDDrive(5,5);
+        }
+        else{
+            LCD.WriteLine("BLUE");
+            PIDDrive(5,5);
+            Turn(true,20,90);
+            Move(17,4);
+            Move(15,-5);
+            Turn(true,20,-90);
+
+        }
+        PIDDrive(2.35,3);
+        Turn(true,20,-90);
+}
 
 #define INITIAL_TURN_ANGLE 90
 #define ALIGN_WITH_LEVER_ANGLE 20
@@ -76,79 +103,18 @@ int main(void)
 
 
     waitForLight();
+    moveToLight();
+    pressCorrectButton();
 
-    PIDDrive(1.3,3);
 
-    Turn(true,20,50); //Perp to wall
-    PIDDrive(12,5); //Get to light
 
-    //Read Light
-        if(cds.Value()<.5){
-            LCD.WriteLine("SCARLET");
-            Turn(true,20,90);
-            Move(17,4);
-            Move(15,-5);
-            Turn(true,20,-90);
-            PIDDrive(5,5);
-        }
-        else if(cds.Value()>.5 && cds.Value()<1){
-            LCD.WriteLine("BLUE");
-            PIDDrive(5,5);
-            Turn(true,20,90);
-            Move(17,4);
-            Move(15,-5);
-            Turn(true,20,-90);
-
-        }
-        PIDDrive(2,3);
-        Turn(true,20,-90);
         //At this point, the robot is facing the ramp
         PIDDrive(29,6); //Get up ramp
         Move(16,10);
         Turn(true,20,178.5);
         Move(25,-12);
+        stickOfDestiny.SetDegree(0);
 
-        stickOfDestiny.SetDegree(35);
-
-
-//
-//    //runDiagnostics();
-//    //First move away from box
-//    Move(25,7);
-
-//    //Turn to be "perpendicular" to wall
-//    Turn(true,20,43);
-
-//    //Move to ramp spot
-//    Move(25,16);
-
-//    //Turn to ramp
-//    Turn(true,20,-88);
-
-//    //YEET
-//    PIDDrive(21,7); //Up Ramp
-
-//    //After getting up ramp, move forward
-//    Move(15,26.3);
-
-//    //Turn to lever
-//    Turn(true,20,91);
-
-//    //Move to lever
-//    Move(25,-17.5);
-
-//    //Whack Lever
-//    tinyServo.SetDegree(20);
-
-//    //Escape Plan
-
-//    Move(25,16.5);
-//    tinyServo.SetDegree(90);
-
-//    Turn(true,20,-87);
-//    Move(15,-4);
-//    Turn(true,20,181.7);
-//    PIDDrive(60,5);
 
 }
 
@@ -519,7 +485,7 @@ void PIDDrive(float distance, float expectedSpeed){
     resetPIDVariables();
 
     while(((leftEncoder.Counts() / 318.0) * CIRCUMFRENCE) < distance || ((rightEncoder.Counts() / 318.0) * CIRCUMFRENCE) < distance){
-        rightMotor.SetPercent(rightPIDAdjustment(expectedSpeed));
+        rightMotor.SetPercent(rightPIDAdjustment(expectedSpeed*.98));
         leftMotor.SetPercent(-leftPIDAdjustment(expectedSpeed));
         LCD.Clear();
         if(((rightEncoder.Counts() / 318.0) * CIRCUMFRENCE) >= distance){
@@ -595,16 +561,5 @@ void resetPIDVariables(){
     leftPreviousError=0;
     rightPreviousError=0;
     rOldMotorPower=0;
-    lOldMotorPower=0;
-}
-
-void alignToWall(float percent){
-    float startTime = TimeNow();
-    leftMotor.SetPercent(-(percent));
-    rightMotor.SetPercent(percent);
-
-    if(TimeNow()-startTime > 5){
-        leftMotor.Stop();
-        rightMotor.Stop();
-    }
+    lOldMotorPower=15;
 }
