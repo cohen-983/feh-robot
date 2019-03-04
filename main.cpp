@@ -22,6 +22,7 @@ AnalogInputPin cds(FEHIO::P1_0);
 
 FEHServo stickOfDestiny(FEHServo::Servo0);
 FEHServo bigBoy(FEHServo::Servo7);
+FEHServo coinArm(FEHServo::Servo5);
 
 
 void Move(int pow, float dis);
@@ -45,9 +46,12 @@ void waitForLight(){
     while(cds.Value()>.5);
 }
 
-void moveToLight(){
+void start(){
     PIDDrive(1.3,3);//move from starting light
     Turn(true,20,47); //Perp to wall
+}
+
+void moveToLight(){
     PIDDrive(12.3,5); //Get to light
 }
 
@@ -56,7 +60,7 @@ void pressCorrectButton(){
         if(cds.Value()<.45){
             LCD.SetBackgroundColor(SCARLET);
             Turn(true,20,92);
-            Move(17,4);
+            Move(15,4);
             Move(15,-5);
             Turn(true,20,-90);
             PIDDrive(5,5);
@@ -64,7 +68,7 @@ void pressCorrectButton(){
             LCD.SetBackgroundColor(BLUE);    //FIX SLIPPAGE
             PIDDrive(5.5,5);
             Turn(true,20,90);
-            Move(17,4);
+            Move(15,4);
             Move(15,-5);
             Turn(true,20,-90);
 
@@ -102,22 +106,22 @@ int main(void)
     bigBoy.SetMax(2500);
     LCD.WriteLine(Battery.Voltage());
 
-//    bigBoy.SetDegree(90);
-//    Sleep(1.0);
-//    bigBoy.SetDegree(180);
-//    Sleep(1.0);
-//    bigBoy.SetDegree(0);
-
     waitForLight();
+    start();
     moveToLight();
-    pressCorrectButton();
+    PIDDrive(7.75,5);//Get to base of ramp
+    Turn(true,20,90);
+    Move(20,-5);
+    Turn(true,20,-18);
+    PIDDrive(35,5);
+
 
     //At this point, the robot is facing the ramp
-    PIDDrive(29,6); //Get up ramp
-    Move(16,10);
-    Turn(true,20,178.5);
-    Move(25,-12);
-    stickOfDestiny.SetDegree(0);
+//    PIDDrive(29,6); //Get up ramp
+//    Move(16,10);
+//    Turn(true,20,178.5);
+//    Move(25,-12);
+//    stickOfDestiny.SetDegree(0);
 
 
 
