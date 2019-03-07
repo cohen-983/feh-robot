@@ -52,7 +52,7 @@ void TurnWithRPS(float angleToFace);
 
 void start(){
     checkHeading(45);
-    PIDDrive(1.5,3);//move from starting light
+    PIDDrive(1.75,3);//move from starting light
     Turn(true,20,47); //Perp to wall
     checkHeading(0);
 }
@@ -108,7 +108,7 @@ void checkXMinus(float xCoord);
 #define DCONST .25
 
 float lPreviousTime,rPreviousTime;
-int rightPreviousCounts,leftPreviousCounts;
+int rightPreviousCounts,leftPreviousCounts, leftSign, rightSign;
 float rightActualVelocity, leftActualVelocity;
 float expectedVelocity;
 float lPTerm,lITerm,lDTerm,rPTerm,rITerm,rDTerm;
@@ -131,7 +131,7 @@ int main(void)
     coinArm.SetMin(520);
     coinArm.SetMax(1955);
 
-    coinArm.SetDegree(30);
+    coinArm.SetDegree(35);
 
     RPS.InitializeTouchMenu();
 
@@ -143,31 +143,36 @@ int main(void)
     checkHeading(270);
     Move(20,-5);//Back away from wall
     Turn(true,35,-180);//Turn to ramp
-    checkHeading(90);
+    checkHeading(90.25);
     PIDDrive(43,5);//Up ramp
     Turn(true,20,-140);//Turn to coin
     PIDDrive(5,5);
     checkHeading(225);
-    PIDDrive(18.7,5);//To coin
-    checkYMinus(42.6);
-    Turn(true,30,40);//Perp to wall
+    PIDDrive(18,5);//To coin
+    checkYMinus(43);
+    Turn(true,35,50);//Perp to wall
+    Sleep(100);
     checkHeading(180);
-    checkXMinus(8);
-    PIDDrive(1,3);
+    checkXMinus(7.5);
     checkHeading(180);
 
     dropCoin();
 
     Turn(true,20,20);
-    PIDDrive(10,5);
-    Turn(true,20,70);
-    checkHeading(90);
-    PIDDrive(20,5);
-    Turn(true,20,90);
+    PIDDrive(3,5);
+    Turn(true,20,-20);
+    checkHeading(180);
+    checkXMinus(4.5);
+    Turn(true,20,-90);
+    Sleep(100);
+    checkHeading(266.5);
+    LCD.WriteLine(RPS.Heading());
+    Sleep(3.0);
+    LCD.Clear();
+    PIDDrive(-11.875,5);
+    Turn(true,25,-40);
+    PIDDrive(-1,3);
     dropCoin();
-
-
-
 }
 
 /*
@@ -257,11 +262,13 @@ void Move(int percent, float distance)
         if(leftDone && rightDone){
             moveComplete=true;
         }
-        if(TimeNow()-startTime >= 6){
+        if(TimeNow()-startTime >= 15){
             moveComplete=true;
         }
 
     }
+    leftMotor.Stop();
+    rightMotor.Stop();
 }
 
 void Turn(bool t, int x, float y)
@@ -301,6 +308,7 @@ void Turn(bool t, int x, float y)
     int leftCounts = 0;
     float rightCountsRatio = 0;
     float leftCountsRatio = 0;
+    float startTime = TimeNow();
 
     if(negativeAngle == true) //flip coefficients for a negative move
     {
@@ -344,30 +352,13 @@ void Turn(bool t, int x, float y)
                 leftMotor.Stop();
                 leftDone=true;
             }
-
-            /*if(rightCounts >= encoderTicks && leftCounts >= encoderTicks)
-            // if either motor is past the threshold, stop the move and balance it out at the finish
-            {
-                rightMotor.Stop(); //stop them
+            if(TimeNow()-startTime > 7.5){
                 leftMotor.Stop();
-                while(rightCounts != leftCounts) // then verify that they went the same distance
-                {
-                    leftCounts = leftEncoder.Counts();
-                    rightCounts = rightEncoder.Counts();
+                rightMotor.Stop();
+                moveComplete=true;
+            }
 
-                    if(rightCounts > leftCounts) // if not, balance it out
-                    {
-                        leftMotor.SetPercent(leftCoeff*powerPercent);
-                        rightMotor.Stop();
-                    }
-                    else if(leftCounts > rightCounts)
-                    {
-                        rightMotor.SetPercent(-1*rightCoeff*powerPercent);
-                        leftMotor.Stop();
-                    }
-                }
-                rightMotor.Stop(); //actually stop them, suspiciously missing in earlier revisions.
-                leftMotor.Stop();*/ //I say, like it wasn't my fault in those revisions.
+
             if(leftDone && rightDone){
 
                 //Ensure turn is accurate
@@ -397,6 +388,11 @@ void Turn(bool t, int x, float y)
                     leftMotor.Stop();
                     moveComplete = true;
                 }
+                if(TimeNow()-startTime > 7.5){
+                    leftMotor.Stop();
+                    rightMotor.Stop();
+                    moveComplete=true;
+                }
             }
         }
         else if(negativeAngle == true)
@@ -411,6 +407,11 @@ void Turn(bool t, int x, float y)
                 {
                     rightMotor.Stop();
                     moveComplete = true;
+                }
+                if(TimeNow()-startTime > 7.5){
+                    leftMotor.Stop();
+                    rightMotor.Stop();
+                    moveComplete=true;
                 }
             }
         }
@@ -535,10 +536,15 @@ void SansUndertale()
 
 void PIDDrive(float distance, float expectedSpeed){
     resetPIDVariables();
+    if(distance<0){
+        distance=-distance;
+        rightSign=-rightSign;
+        leftSign=-leftSign;
+    }
 
     while(((leftEncoder.Counts() / 318.0) * CIRCUMFRENCE) < distance || ((rightEncoder.Counts() / 318.0) * CIRCUMFRENCE) < distance){
-        rightMotor.SetPercent(rightPIDAdjustment(expectedSpeed*.97));
-        leftMotor.SetPercent(-leftPIDAdjustment(expectedSpeed));
+        rightMotor.SetPercent(rightSign * rightPIDAdjustment(expectedSpeed*.97));
+        leftMotor.SetPercent(leftSign * leftPIDAdjustment(expectedSpeed));
         LCD.Clear();
         if(((rightEncoder.Counts() / 318.0) * CIRCUMFRENCE) >= distance){
             rightMotor.Stop();
@@ -612,14 +618,17 @@ void resetPIDVariables(){
     rDTerm=0;
     leftPreviousError=0;
     rightPreviousError=0;
-    rOldMotorPower=0;
-    lOldMotorPower=3;
+    rOldMotorPower=5;
+    lOldMotorPower=5;
+    leftSign=-1;
+    rightSign=1;
 }
 
 void checkHeading(float heading){
     float currentHeading;
     currentHeading= RPS.Heading();
     if(currentHeading>=0){
+        float startTime=TimeNow();
         if(heading > 359 || heading < 1){
             while(currentHeading < 359 && currentHeading > 1){
                 currentHeading= RPS.Heading();
@@ -632,9 +641,12 @@ void checkHeading(float heading){
                     Sleep(10);
                     rightMotor.Stop();
                 }
+                if(TimeNow()-startTime > 6){
+                    break;
+                }
             }
         } else{
-            while(currentHeading > heading + 1 || currentHeading < heading - 1){
+            while(currentHeading > heading + .5 || currentHeading < heading - .5){
                 currentHeading= RPS.Heading();
                 if(currentHeading > heading + 1){
                 leftMotor.SetPercent(-10);
@@ -645,9 +657,17 @@ void checkHeading(float heading){
                     Sleep(10);
                     rightMotor.Stop();
                 }
-
+                if(TimeNow()-startTime > 6){
+                    break;
+                }
             }
         }
+    }else{
+        LCD.SetBackgroundColor(RED);
+        LCD.Clear();
+        Sleep(10);
+        Move(10,.25);
+        checkHeading(heading);
     }
 }
 
@@ -681,15 +701,14 @@ void checkYMinus(float yCoord) //using RPS while robot is in the -y direction
 
 void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
 {
-    LCD.SetBackgroundColor(BLUE);
     //check whether the robot is within an acceptable range
-    while(RPS.X() < xCoord - 1 || RPS.X() > xCoord + 1)
+    while(RPS.X() < xCoord - .2 || RPS.X() > xCoord + .2)
     {
         if(RPS.X() > xCoord)
         {
             //pulse the motors for a short duration in the correct direction
 
-            rightMotor.SetPercent(10);
+            rightMotor.SetPercent(10*.97);
             leftMotor.SetPercent(-10);
             Sleep(20);
             rightMotor.Stop();
@@ -699,7 +718,7 @@ void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
         {
             //pulse the motors for a short duration in the correct direction
 
-            rightMotor.SetPercent(-10);
+            rightMotor.SetPercent(-10*.97);
             leftMotor.SetPercent(10);
             Sleep(20);
             rightMotor.Stop();
