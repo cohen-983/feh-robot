@@ -172,6 +172,8 @@ int main(void)
     PIDDrive(-11.875,5);
     Turn(true,25,-40);
     PIDDrive(-1,3);
+    leftMotor.Stop();//PID BROKE
+    rightMotor.Stop();
     dropCoin();
 }
 
