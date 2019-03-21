@@ -66,20 +66,23 @@ void checkHeading(float angle);
 void TurnWithRPS(float angleToFace);
 
 void start(){
-
     Turn(true,20,-47);
     checkHeading(90);
+    PIDDrive(1,3);
     checkYPlus(12.5);
     Turn(true,20,90);
     checkHeading(0);
+    PIDDrive(-1,5);
     checkXPlus(8);
     checkHeading(0);
 }
 
 void moveToLight(){
-    checkHeading(359);
+    Turn(true,20,2);
+    checkHeading(358.5);
     PIDDrive(14.7,5); //Get to light
     checkHeading(0);
+    checkXPlus(22.9);
 }
 
 void pressCorrectButton(){
@@ -87,18 +90,18 @@ void pressCorrectButton(){
         if(cds.Value()<.45){
             LCD.SetBackgroundColor(SCARLET);
             Turn(true,20,90);
-            checkHeading(277);
-            Move(15,4);
+            checkHeading(272);
+            Move(18,5);
             Move(15,-5);
             Turn(true,20,-90);
             checkHeading(0);
-            PIDDrive(5,5);
+            PIDDrive(5.2,5);
         } else{
-            LCD.SetBackgroundColor(BLUE);    //FIX SLIPPAGE
-            PIDDrive(5,5);
+            LCD.SetBackgroundColor(BLUE);
+            PIDDrive(5.2,5);
             Turn(true,20,90);
-            checkHeading(277);
-            Move(15,4);
+            checkHeading(272);
+            Move(18,4);
             Move(15,-5);
             Turn(true,20,-90);
             checkHeading(0);
@@ -111,8 +114,9 @@ void pressCorrectButton(){
 }
 
 void moveUpRamp(){
-    checkHeading(91);//Align to ramp
-    PIDDrive(39.2,5);//Up ramp
+    checkHeading(92);//Align to ramp
+    PIDDrive(30.2,10);//Up ramp
+    PIDDrive(8,5);
     checkHeading(90);
 }
 
@@ -120,6 +124,24 @@ void dropCoin(){
     coinArm.SetDegree(180);
     Sleep(2.0);
     coinArm.SetDegree(90);
+}
+
+void slideSlider(){
+    coinArm.SetDegree(180);
+    Sleep(1.0);
+    PIDDrive(-5,2);
+    coinArm.SetDegree(150);
+    PIDDrive(5,3);
+    coinArm.SetDegree(180);
+    PIDDrive(-5.8,2);
+    coinArm.SetDegree(35);
+}
+
+void moveToSlider(){
+    checkHeading(90);
+    PIDDrive(11,5);
+    Turn(true,20,93);
+    Move(15,6);
 }
 
 void checkYMinus(float yCoord);
@@ -166,36 +188,29 @@ int main(void)
 
         waitForLight();
         start();
-        Sleep(2.0);
+
         moveToLight();
-        Sleep(2.0);
+
         pressCorrectButton();
-        Sleep(2.0);
+
         moveUpRamp();
-        checkHeading(90);
-        PIDDrive(11,5);
-        Turn(true,20,93);
-        Move(20,6);
-        //FUNCTION START for moving slider
-        coinArm.SetDegree(180);
-        Sleep(1.0);
-        PIDDrive(-5,2);
-        coinArm.SetDegree(150);
-        PIDDrive(5,3);
-        coinArm.SetDegree(180);
-        PIDDrive(-8.8,2);
-        coinArm.SetDegree(35);
-        //FUNCTION END
-        Turn(true,20,20);//turn away from slider
-        PIDDrive(6,5);//move from slider
+
+        moveToSlider();
+
+        slideSlider();
+
+        Turn(true,20,30);//turn away from slider
+        PIDDrive(3,5);//move from slider
         Turn(true,20,72);//turn towards ramp
         PIDDrive(10,5);//move towards ramp
         checkHeading(268.25);//check heading to ramp
         PIDDrive(14,10);//get up steps
+        checkHeading(267);//turn angled down ramp
         PIDDrive(22,3);//get down ramp
         Turn(true,20,65);//turn to button
-        checkHeading(205);//align with button
-        PIDDrive(500,10);//YEET
+        PIDDrive(1,5);
+        checkHeading(202.5);//align with button
+        PIDDrive(500,15);//YEET
 
 }
 
@@ -255,14 +270,14 @@ void Move(int percent, float distance)
         {
             rightMotor.SetPercent((rightCoeff*powerPercent)*rightCountsRatio);
             leftMotor.SetPercent(leftCoeff*powerPercent);
-            LCD.WriteLine("Turn right");
+            //LCD.WriteLine("Turn right");
         }
 
         else if(leftCounts > rightCounts + 5)
         {
             rightMotor.SetPercent(rightCoeff*powerPercent);
             leftMotor.SetPercent((leftCoeff*powerPercent)*leftCountsRatio);
-            LCD.WriteLine("Turn Left");
+            //LCD.WriteLine("Turn Left");
         }
 
         else if(leftCounts == rightCounts)
@@ -649,64 +664,58 @@ void resetPIDVariables(){
 }
 
 void checkHeading(float heading){
-    Sleep(200);
+
     float currentHeading;
     heading = correctH(heading); //Correct the heading
     currentHeading= RPS.Heading();//Get current heading
     if(currentHeading>=0){ //If not negative
         float startTime=TimeNow(); //take start time for timeout
-//        if(heading > 355 || heading < 5){ //If desired heading is close to 0 or 360 (same angle)
-//            while(currentHeading+hCorrectionFactor < 359.9 && currentHeading+hCorrectionFactor > .1){ //while heading is not close to 0 or 360
-
-//                currentHeading = RPS.Heading(); //get heading
-//                if(currentHeading>=0){ //If positive
-//                    if (currentHeading <= 180){ //around 1,2,3,etc.
-//                        leftMotor.SetPercent(-10); //turn right
-//                        Sleep(20);//for 10 ms
-//                        leftMotor.Stop();
-//                    } else if(currentHeading > 180){//around 357,358,359, etc.
-//                        leftMotor.SetPercent(10); //turn left
-//                        Sleep(20);//for 10 ms
-//                        leftMotor.Stop();
-//                    }
-//                    if(TimeNow()-startTime > 10){ //timeout of 10 seconds
-//                        break;
-//                    }
-//                }else{
-//                    while(currentHeading<0){ //While getting a negative value
-//                        currentHeading=RPS.Heading(); //Recheck value
-//                        LCD.SetBackgroundColor(GREEN);//Change background to signal this code executed
-//                    }
-//                }
-//            }
-//        } else{
-            while(currentHeading > heading + .2 || currentHeading < heading - .2){ //1 degree error
-
+            while(currentHeading > heading + .3 || currentHeading < heading - .3){ //.6 degree error
+                Sleep(100);
+                LCD.Clear();
                 currentHeading= RPS.Heading(); //check heading
+                LCD.Write("Heading: ");
+                LCD.WriteLine(currentHeading);
+                LCD.Write("Expected Heading: ");
+                LCD.WriteLine(heading);
+
+
                 if(abs(currentHeading-heading) <= 180){ //if heading is greater than the range
-                    if(currentHeading>heading){
-                        leftMotor.SetPercent(-10); //turn right
-                        Sleep(10);//for 10 ms
+                    if(abs(currentHeading-heading) >= 20){
+                        Turn(true,20,.9*(currentHeading-heading));
+                    }
+                    else if(currentHeading>heading){
+                        leftMotor.SetPercent(-15); //turn right
+                        Sleep(50);//for 10 ms
                         leftMotor.Stop();
                     } else{
-                        leftMotor.SetPercent(10); //turn left
-                        Sleep(10);//for 10 ms
+                        leftMotor.SetPercent(15); //turn left
+                        Sleep(50);//for 10 ms
                         leftMotor.Stop();
                     }
                 } else{//if heading difference is greater than 180
-                    if(currentHeading>heading){
-                        leftMotor.SetPercent(10); //turn left
-                        Sleep(10);//for 10 ms
+                    if((currentHeading-heading)-360 >= 20){
+                        Turn(true,20,(.9*(currentHeading-heading)-360));
+
+                    }
+                    else if((currentHeading-heading)+360 <= -20){
+                        Turn(true,20,(.9*(currentHeading-heading)+360));
+
+                    }
+                    else if(currentHeading>heading){
+                        leftMotor.SetPercent(15); //turn left
+                        Sleep(50);//for 50 ms
                         leftMotor.Stop();
                     } else{
-                        leftMotor.SetPercent(-10); //turn right
-                        Sleep(10);//for 10 ms
+                        leftMotor.SetPercent(-15); //turn right
+                        Sleep(50);//for 50 ms
                         leftMotor.Stop();
                     }
                 }
                 if(TimeNow()-startTime > 10){//timeout
                     break;
                 }
+
             }
 
     }else{
@@ -725,15 +734,15 @@ void checkYMinus(float yCoord) //using RPS while robot is in the -y direction
     //check whether the robot is within an acceptable range
     while(RPS.Y() < yCoord - .1 || RPS.Y() > yCoord + .1)
     {
+        Sleep(100);
         if(RPS.Y() > yCoord)
         {
             //pulse the motors for a short duration in the correct direction
             rightMotor.SetPercent(10);
             leftMotor.SetPercent(-10);
-            Sleep(10);
+            Sleep(50);
             rightMotor.Stop();
             leftMotor.Stop();
-
         }
         else if(RPS.Y() < yCoord)
         {
@@ -741,7 +750,7 @@ void checkYMinus(float yCoord) //using RPS while robot is in the -y direction
 
             rightMotor.SetPercent(-10);
             leftMotor.SetPercent(10);
-            Sleep(10);
+            Sleep(50);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -754,12 +763,13 @@ void checkYPlus(float yCoord) //using RPS while robot is in the +y direction
     //check whether the robot is within an acceptable range
     while(RPS.Y() < yCoord - .1 || RPS.Y() > yCoord + .1)
     {
+        Sleep(100);
         if(RPS.Y() > yCoord)
         {
             //pulse the motors for a short duration in the correct direction
             rightMotor.SetPercent(-10);
             leftMotor.SetPercent(10);
-            Sleep(10);
+            Sleep(50);
             rightMotor.Stop();
             leftMotor.Stop();
 
@@ -770,7 +780,7 @@ void checkYPlus(float yCoord) //using RPS while robot is in the +y direction
 
             rightMotor.SetPercent(10);
             leftMotor.SetPercent(-10);
-            Sleep(10);
+            Sleep(50);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -783,13 +793,14 @@ void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
     //check whether the robot is within an acceptable range
     while(RPS.X() < xCoord - .2 || RPS.X() > xCoord + .2)
     {
+        Sleep(100);
         if(RPS.X() > xCoord)
         {
             //pulse the motors for a short duration in the correct direction
 
-            rightMotor.SetPercent(10*.97);
+            rightMotor.SetPercent(10);
             leftMotor.SetPercent(-10);
-            Sleep(20);
+            Sleep(50);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -797,9 +808,9 @@ void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
         {
             //pulse the motors for a short duration in the correct direction
 
-            rightMotor.SetPercent(-10*.97);
+            rightMotor.SetPercent(-10);
             leftMotor.SetPercent(10);
-            Sleep(20);
+            Sleep(50);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -812,13 +823,14 @@ void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
     //check whether the robot is within an acceptable range
     while(RPS.X() < xCoord - .2 || RPS.X() > xCoord + .2)
     {
+        Sleep(100);
         if(RPS.X() > xCoord)
         {
             //pulse the motors for a short duration in the correct direction
 
             rightMotor.SetPercent(-10);
             leftMotor.SetPercent(10);
-            Sleep(20);
+            Sleep(50);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -828,7 +840,7 @@ void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
 
             rightMotor.SetPercent(10);
             leftMotor.SetPercent(-10);
-            Sleep(20);
+            Sleep(50);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -845,8 +857,14 @@ void RPSCorrect(){
         yCorrectionFactor = yCoord - CORRECT_Y;
         hCorrectionFactor = heading - CORRECT_H;
     } else {
+        Sleep(100);
         RPSCorrect();
     }
+
+    LCD.Clear();
+    LCD.WriteLine(xCorrectionFactor);
+    LCD.WriteLine(yCorrectionFactor);
+    LCD.WriteLine(hCorrectionFactor);
 }
 
 float correctX(float x){
