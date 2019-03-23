@@ -28,7 +28,7 @@ FEHServo stickOfDestiny(FEHServo::Servo0);
 FEHServo bigBoy(FEHServo::Servo7);
 FEHServo coinArm(FEHServo::Servo5);
 
-float zeroHeading,hCorrectionFactor;
+float zeroHeading, hCorrectionFactor;
 float xLight, yLight, xCoinSlot, yCoinSlot;
 
 void RPSCorrect();
@@ -904,9 +904,12 @@ void RPSCorrect(){
     while(LCD.Touch(&x,&y));
     while(!LCD.Touch(&x,&y));
     Sleep(500);
-
-    xLight=RPS.X();
-    yLight=RPS.Y();
+    
+    do{
+        xLight=RPS.X();
+        yLight=RPS.Y();
+        Sleep(200);
+    }while (xLight < 0 || yLight < 0);
 
     LCD.WriteLine(xLight);
     LCD.WriteLine(yLight);
@@ -917,8 +920,11 @@ void RPSCorrect(){
     while(!LCD.Touch(&x,&y));
     Sleep(500);
 
-    xCoinSlot = RPS.X();
-    yCoinSlot =RPS.Y();
+    do{
+        xCoinSlot = RPS.X();
+        yCoinSlot =RPS.Y();
+        Sleep(10);
+    }while (xCoinSlot < 0 || yCoinSlot < 0);
 
     LCD.WriteLine(xCoinSlot);
     LCD.WriteLine(yCoinSlot);
@@ -929,9 +935,11 @@ void RPSCorrect(){
     while(!LCD.Touch(&x,&y));
     Sleep(500);
 
-    zeroHeading = RPS.Heading();
-    hCorrectionFactor = zeroHeading;
-
+    do{
+        zeroHeading = RPS.Heading();
+        hCorrectionFactor = zeroHeading;
+        Sleep(200);
+    }while (zeroHeading < 0);
     LCD.Clear();
 
 }
