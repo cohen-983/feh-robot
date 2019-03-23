@@ -111,7 +111,7 @@ void pressCorrectButton(){
 }
 
 void moveUpRamp(){
-    checkHeading(92);//Align to ramp
+    checkHeading(93);//Align to ramp
     PIDDrive(30.2,10);//Up ramp
     PIDDrive(12.8,5);
 }
@@ -125,7 +125,6 @@ void moveToCoinSlot(){
     Sleep(100);
     checkHeading(180);
     checkXMinus(xCoinSlot);
-    checkHeading(180);
 }
 
 void dropCoin(){
@@ -224,7 +223,7 @@ int main(void)
         coinArm.SetMin(520);
         coinArm.SetMax(1955);
 
-        coinArm.SetDegree(15);
+        coinArm.SetDegree(20);
 
         RPS.InitializeTouchMenu();
 
@@ -812,7 +811,7 @@ void checkYPlus(float yCoord) //using RPS while robot is in the +y direction
             //pulse the motors for a short duration in the correct direction
             rightMotor.SetPercent(-10);
             leftMotor.SetPercent(10);
-            Sleep(50);
+            Sleep(70);
             rightMotor.Stop();
             leftMotor.Stop();
 
@@ -823,7 +822,7 @@ void checkYPlus(float yCoord) //using RPS while robot is in the +y direction
 
             rightMotor.SetPercent(10);
             leftMotor.SetPercent(-10);
-            Sleep(50);
+            Sleep(70);
             rightMotor.Stop();
             leftMotor.Stop();
         }
