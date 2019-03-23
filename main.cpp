@@ -12,9 +12,9 @@
 #define PI 3.1415926
 #define CIRCUMFRENCE 7.85
 #define WHEEL_TO_WHEEL_WIDTH 7.5
-#define CORRECT_X 18.699
-#define CORRECT_Y 6.599
-#define CORRECT_H 0
+//#define CORRECT_X 18.699
+//#define CORRECT_Y 6.599
+//#define CORRECT_H 0
 
 FEHMotor rightMotor(FEHMotor::Motor0,9.0);
 FEHMotor leftMotor(FEHMotor::Motor1,9.0);
@@ -28,17 +28,18 @@ FEHServo stickOfDestiny(FEHServo::Servo0);
 FEHServo bigBoy(FEHServo::Servo7);
 FEHServo coinArm(FEHServo::Servo5);
 
-float hCorrectionFactor, xCorrectionFactor, yCorrectionFactor;
-
+float zeroHeading,hCorrectionFactor;
+float xLight, yLight, xCoinSlot, yCoinSlot;
 
 void RPSCorrect();
 //Get RPS to work on every course
-float correctX(float x);
-float correctY(float y);
-float correctH(float angle);
+
 
 void checkXPlus(float xCoord);
 void checkYPlus(float yCoord);
+
+float correctH(float angle);
+
 
 void Move(int pow, float dis);
 //Given an integer argument for power and a float argument for distance, moves the robot that far at that speed
@@ -61,54 +62,50 @@ void waitForLight(){
     while(cds.Value()>.5);
 }
 
+void checkYMinus(float yCoord);
+
+void checkXMinus(float xCoord);
+
 void checkHeading(float angle);
 
 void TurnWithRPS(float angleToFace);
 
 void start(){
-    Turn(true,20,-47);
-    checkHeading(90);
-    PIDDrive(1,3);
-    checkYPlus(12.5);
-    Turn(true,20,90);
+    checkYPlus(yLight);
+    Turn(true,40,41);
     checkHeading(0);
-    PIDDrive(-1,5);
-    checkXPlus(8);
-    checkHeading(0);
+
 }
 
 void moveToLight(){
-    Turn(true,20,2);
-    checkHeading(358.5);
-    PIDDrive(14.7,5); //Get to light
+    checkXPlus(xLight);
     checkHeading(0);
-    checkXPlus(22.9);
 }
 
 void pressCorrectButton(){
     //Read Light
         if(cds.Value()<.45){
             LCD.SetBackgroundColor(SCARLET);
-            Turn(true,20,90);
+            Turn(true,40,85);
             checkHeading(272);
             Move(18,5);
             Move(15,-5);
-            Turn(true,20,-90);
+            Turn(true,40,-85);
             checkHeading(0);
             PIDDrive(5.2,5);
         } else{
             LCD.SetBackgroundColor(BLUE);
             PIDDrive(5.2,5);
-            Turn(true,20,90);
+            Turn(true,40,85);
             checkHeading(272);
             Move(18,4);
             Move(15,-5);
-            Turn(true,20,-90);
+            Turn(true,40,-85);
             checkHeading(0);
 
         }
         PIDDrive(2.35,3);
-        Turn(true,20,-94);
+        Turn(true,40,-90);
         checkHeading(90);
         PIDDrive(1,2);
 }
@@ -116,8 +113,19 @@ void pressCorrectButton(){
 void moveUpRamp(){
     checkHeading(92);//Align to ramp
     PIDDrive(30.2,10);//Up ramp
-    PIDDrive(8,5);
-    checkHeading(90);
+    PIDDrive(12.8,5);
+}
+
+void moveToCoinSlot(){
+    Turn(true,40,-140);//Turn to coin
+    PIDDrive(5,5);
+    checkHeading(225);
+    checkYMinus(yCoinSlot);
+    Turn(true,35,45);//Perp to wall
+    Sleep(100);
+    checkHeading(180);
+    checkXMinus(xCoinSlot);
+    checkHeading(180);
 }
 
 void dropCoin(){
@@ -126,27 +134,63 @@ void dropCoin(){
     coinArm.SetDegree(90);
 }
 
+void flipLever(){
+    Turn(true,40,15);
+        PIDDrive(3,5);
+        Turn(true,40,-15);
+        checkHeading(180);
+        checkXMinus(4.5);
+        Turn(true,40,-85);
+        Sleep(100);
+        checkHeading(266.5);
+        LCD.WriteLine(RPS.Heading());
+        Sleep(3.0);
+        LCD.Clear();
+        PIDDrive(-11.875,5);
+        Turn(true,50,-35);
+        PIDDrive(-1,3);
+        leftMotor.Stop();//PID BROKE
+        rightMotor.Stop();
+        dropCoin();
+}
+
 void slideSlider(){
     coinArm.SetDegree(180);
     Sleep(1.0);
-    PIDDrive(-5,2);
+    PIDDrive(-5,4);
     coinArm.SetDegree(150);
-    PIDDrive(5,3);
+    PIDDrive(5,4);
     coinArm.SetDegree(180);
-    PIDDrive(-5.8,2);
+    PIDDrive(-5.8,4);
     coinArm.SetDegree(35);
 }
 
 void moveToSlider(){
     checkHeading(90);
     PIDDrive(11,5);
-    Turn(true,20,93);
+    Turn(true,40,90);
     Move(15,6);
 }
 
-void checkYMinus(float yCoord);
+void goDownRamp(){
+    Turn(true,40,25);//turn away from slider
+    PIDDrive(3,5);//move from slider
+    Turn(true,40,67);//turn towards ramp
+    PIDDrive(10,5);//move towards ramp
+    checkHeading(268.25);//check heading to ramp
+    PIDDrive(14,10);//get up steps
+    checkHeading(267);//turn angled down ramp
+    PIDDrive(22,3);//get down ramp
+}
 
-void checkXMinus(float xCoord);
+void pushFinalButton(){
+    Turn(true,40,60);//turn to button
+    PIDDrive(1,5);
+    checkHeading(202.5);//align with button
+    PIDDrive(500,15);//YEET
+}
+
+
 
 #define INITIAL_TURN_ANGLE 90
 #define ALIGN_WITH_LEVER_ANGLE 20
@@ -180,13 +224,14 @@ int main(void)
         coinArm.SetMin(520);
         coinArm.SetMax(1955);
 
-        coinArm.SetDegree(35);
+        coinArm.SetDegree(15);
 
         RPS.InitializeTouchMenu();
 
         RPSCorrect();
 
         waitForLight();
+
         start();
 
         moveToLight();
@@ -195,22 +240,12 @@ int main(void)
 
         moveUpRamp();
 
-        moveToSlider();
+        moveToCoinSlot();
 
-        slideSlider();
+        dropCoin();
 
-        Turn(true,20,30);//turn away from slider
-        PIDDrive(3,5);//move from slider
-        Turn(true,20,72);//turn towards ramp
-        PIDDrive(10,5);//move towards ramp
-        checkHeading(268.25);//check heading to ramp
-        PIDDrive(14,10);//get up steps
-        checkHeading(267);//turn angled down ramp
-        PIDDrive(22,3);//get down ramp
-        Turn(true,20,65);//turn to button
-        PIDDrive(1,5);
-        checkHeading(202.5);//align with button
-        PIDDrive(500,15);//YEET
+        flipLever();
+
 
 }
 
@@ -679,8 +714,10 @@ void checkHeading(float heading){
                 LCD.Write("Expected Heading: ");
                 LCD.WriteLine(heading);
 
-
-                if(abs(currentHeading-heading) <= 180){ //if heading is greater than the range
+                if(currentHeading<0){
+                    PIDDrive(.25,3);
+                }
+                else if(abs(currentHeading-heading) <= 180){ //if heading is greater than the range
                     if(abs(currentHeading-heading) >= 20){
                         Turn(true,20,.9*(currentHeading-heading));
                     }
@@ -730,12 +767,15 @@ void checkHeading(float heading){
 
 void checkYMinus(float yCoord) //using RPS while robot is in the -y direction
 {
-    yCoord = correctY(yCoord);
+
     //check whether the robot is within an acceptable range
     while(RPS.Y() < yCoord - .1 || RPS.Y() > yCoord + .1)
     {
         Sleep(100);
-        if(RPS.Y() > yCoord)
+        if(abs(RPS.Y()-yCoord)>1){
+            PIDDrive((RPS.Y()-yCoord),5);
+        }
+        else if(RPS.Y() > yCoord)
         {
             //pulse the motors for a short duration in the correct direction
             rightMotor.SetPercent(10);
@@ -759,11 +799,14 @@ void checkYMinus(float yCoord) //using RPS while robot is in the -y direction
 
 void checkYPlus(float yCoord) //using RPS while robot is in the +y direction
 {
-    yCoord = correctY(yCoord);
+
     //check whether the robot is within an acceptable range
     while(RPS.Y() < yCoord - .1 || RPS.Y() > yCoord + .1)
     {
         Sleep(100);
+        if(abs(RPS.Y()-yCoord)>1){
+            PIDDrive(-(RPS.Y()-yCoord),5);
+        }
         if(RPS.Y() > yCoord)
         {
             //pulse the motors for a short duration in the correct direction
@@ -789,12 +832,15 @@ void checkYPlus(float yCoord) //using RPS while robot is in the +y direction
 
 void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
 {
-    xCoord = correctX(xCoord);
+
     //check whether the robot is within an acceptable range
     while(RPS.X() < xCoord - .2 || RPS.X() > xCoord + .2)
     {
         Sleep(100);
-        if(RPS.X() > xCoord)
+        if(abs(RPS.X()-xCoord)>1){
+            PIDDrive((RPS.X()-xCoord),5);
+        }
+        else if(RPS.X() > xCoord)
         {
             //pulse the motors for a short duration in the correct direction
 
@@ -819,11 +865,14 @@ void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
 
 void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
 {
-    xCoord = correctX(xCoord);
+
     //check whether the robot is within an acceptable range
     while(RPS.X() < xCoord - .2 || RPS.X() > xCoord + .2)
     {
         Sleep(100);
+        if(abs(RPS.X()-xCoord)>1){
+            PIDDrive(-(RPS.X()-xCoord),5);
+        }
         if(RPS.X() > xCoord)
         {
             //pulse the motors for a short duration in the correct direction
@@ -848,35 +897,50 @@ void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
 }
 
 void RPSCorrect(){
-    float xCoord = RPS.X();
-    float yCoord = RPS.Y();
-    float heading = RPS.Heading();
-
-    if(xCoord >0){
-        xCorrectionFactor = xCoord - CORRECT_X;
-        yCorrectionFactor = yCoord - CORRECT_Y;
-        hCorrectionFactor = heading - CORRECT_H;
-    } else {
-        Sleep(100);
-        RPSCorrect();
-    }
 
     LCD.Clear();
-    LCD.WriteLine(xCorrectionFactor);
-    LCD.WriteLine(yCorrectionFactor);
-    LCD.WriteLine(hCorrectionFactor);
+    float x,y;
+    LCD.WriteLine("Place on DDR Light");
+
+    while(LCD.Touch(&x,&y));
+    while(!LCD.Touch(&x,&y));
+    Sleep(500);
+
+    xLight=RPS.X();
+    yLight=RPS.Y();
+
+    LCD.WriteLine(xLight);
+    LCD.WriteLine(yLight);
+
+    LCD.WriteLine("Place at coin Slot");
+
+    while(LCD.Touch(&x,&y));
+    while(!LCD.Touch(&x,&y));
+    Sleep(500);
+
+    xCoinSlot = RPS.X();
+    yCoinSlot =RPS.Y();
+
+    LCD.WriteLine(xCoinSlot);
+    LCD.WriteLine(yCoinSlot);
+
+    LCD.WriteLine("Place at heading 0");
+
+    while(LCD.Touch(&x,&y));
+    while(!LCD.Touch(&x,&y));
+    Sleep(500);
+
+    zeroHeading = RPS.Heading();
+    hCorrectionFactor = zeroHeading;
+
+    LCD.Clear();
+
 }
 
-float correctX(float x){
-    return x-xCorrectionFactor;
-}
-float correctY(float y){
-    return y-yCorrectionFactor;
-}
 float correctH(float angle){
-    float correctAngle = angle - hCorrectionFactor;
-    if(correctAngle<0){
-        correctAngle+=360;
+    float correctAngle = angle + hCorrectionFactor;
+    if(correctAngle>360){
+        correctAngle-=360;
     }
     return correctAngle;
 }
