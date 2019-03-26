@@ -58,9 +58,8 @@ float rightPIDAdjustment(float expectedSpeed);
 //Returns the corrected speed for the motors
 float leftPIDAdjustment(float expectedSpeed);
 
-void PIDDrive3(float distance, float expectedSpeed);
-
 void waitForLight(){
+    coinArm.SetDegree(20);
     float startTime = TimeNow();//Take start time for timeout
     while(cds.Value()>.5){ //While the cds cell does not see the light
         if(TimeNow()-startTime > 60){//Timeout after 60 seconds
@@ -78,6 +77,7 @@ void checkHeading(float angle);
 void TurnWithRPS(float angleToFace);
 
 void start(){
+    PIDDrive(.5,3);
     checkYPlus(yLight); //Check the y coordinate of the DDR light
     Turn(true,40,41);//Turn to the lights
     checkHeading(0); //Check heading to the lights
@@ -95,7 +95,7 @@ void pressCorrectButton(){
             LCD.SetBackgroundColor(SCARLET);//Change screen to red
             Turn(true,40,85);//Turn to the button
             checkHeading(272);//Make sure the robot is facing the button
-            Move(18,5);//Push button
+            Move(18,6);//Push button
             Move(15,-5);//Back away from button
             Turn(true,40,-85);//Turn to right wall
             checkHeading(0);//check that the robot is straight
@@ -105,7 +105,7 @@ void pressCorrectButton(){
             PIDDrive(5.2,5);//Move to blue light
             Turn(true,40,85);//turn to button
             checkHeading(272);//face button
-            Move(18,4);//push button
+            Move(18,6);//push button
             Move(15,-5);//back away from button
             Turn(true,40,-85);//turn to right wall
             checkHeading(0);
@@ -116,20 +116,20 @@ void pressCorrectButton(){
 }
 
 void moveUpRamp(){
-    checkHeading(92.5);//Align to ramp
+    checkHeading(91);//Align to ramp
     PIDDrive(31.2,10);//Up ramp
     PIDDrive(12.8,5);//down steps
 }
 
 void moveToCoinSlot(){
     Turn(true,40,-140);//Turn to coin
-    PIDDrive(5,5);//move out of dead zone
-    checkHeading(225);//Check heading to coin
+    PIDDrive(5,7);//move out of dead zone
     checkYMinus(yCoinSlot);//Move to the appropriate y value
     Turn(true,35,45);//Perp to wall
     Sleep(100);
     checkHeading(180);
     checkXMinus(xCoinSlot);//move to coin dropping zone
+    checkHeading(180);
 }
 
 void dropCoin(){
@@ -145,41 +145,52 @@ void flipLever(){
     checkHeading(180);
     checkXMinus(4.5);//move to x value of lever
     Turn(true,40,-85); //Turn to lever
-    checkHeading(266.5);
+    checkHeading(268.5);
     checkYMinus(yCoinSlot+.776457135); //Check a referenced value for y
     PIDDrive(-12,8);//move to lever(entering dead zone)
     Turn(true,50,-35);//turn to lever
-    Move(20,-1.5);//Move into wall
+    //Move into wall
+    rightMotor.SetPercent(-20);
+    leftMotor.SetPercent(20);
+    Sleep(1.5);
+    leftMotor.Stop();
+    rightMotor.Stop();
     dropCoin();//Drop the arm on the lever
 }
 
 void slideSlider(){
     coinArm.SetDegree(180);//drop arm onto sliders
     Sleep(1.0);//wait for arm to move
-    PIDDrive(-5,4);//drive with the sliders
-    coinArm.SetDegree(150);//let go of sliders
-    PIDDrive(5,4);//move back to get a better grip on the sliders
-    coinArm.SetDegree(180);//regrip sliders
-    PIDDrive(-5.8,4);//move sliders the rest of the way
+    PIDDrive(-8,4);//drive with the sliders
+//    coinArm.SetDegree(150);//let go of sliders
+//    PIDDrive(5,4);//move back to get a better grip on the sliders
+//    coinArm.SetDegree(180);//regrip sliders
+//    PIDDrive(-6.6,4);//move sliders the rest of the way
     coinArm.SetDegree(35);//let go of sliders
 }
 
 void moveToSlider(){
+    Turn(true,20,5);
     PIDDrive(15.5,8);//drive away from lever
-    Turn(true,40,80);//turn so beck end of robot is facing the sliders
-    checkHeading(232);
-    PIDDrive(-7,8);//move in front of ramp
-    Turn(true,40,-20);//turn facing sliders
-    checkHeading(270);
-    //checkYMinus(##);
-    PIDDrive(-9,8);//drive to sliders
-    Turn(true,20,-87);//turn facing the right wall
+    Turn(true,40,80);//turn so back end of robot is facing the sliders
+    checkHeading(230);
+    PIDDrive(-14,8);//move in front of ramp
+    Turn(true,40,-60);//turn so back is facing sliders
+    PIDDrive(4,6);
+    Turn(true,40,15);
+    checkHeading(273);
+    PIDDrive(-11.75,8);//drive to sliders
+    Turn(true,40,-90);//turn facing the right wall
+    /*
+     * Turn moves the sliders, could be used to ush them all the way
+     */
     //move into the wall
     rightMotor.SetPercent(20);
     leftMotor.SetPercent(-20);
     Sleep(3.0);
     leftMotor.Stop();
     rightMotor.Stop();
+
 
 }
 
@@ -188,10 +199,10 @@ void goDownRamp(){
     PIDDrive(3,5);//move from slider
     Turn(true,40,67);//turn towards ramp
     PIDDrive(10,5);//move towards ramp
-    checkHeading(268.25);//check heading to ramp
-    PIDDrive(14,10);//get up steps
+    checkHeading(269);//check heading to ramp
+    PIDDrive(14.5,10);//get up steps
     checkHeading(267);//turn angled down ramp
-    PIDDrive(22,3);//get down ramp
+    PIDDrive(22,4);//get down ramp
 }
 
 void pushFinalButton(){
@@ -236,7 +247,7 @@ int main(void)
         coinArm.SetMin(520);
         coinArm.SetMax(1955);
 
-        coinArm.SetDegree(20);
+        coinArm.SetDegree(35);
 
         RPS.InitializeTouchMenu();
 
@@ -356,7 +367,7 @@ void Move(int percent, float distance)
         if(leftDone && rightDone){
             moveComplete=true;
         }
-        if(TimeNow()-startTime >= 8){
+        if(TimeNow()-startTime >= 6.5){
             moveComplete=true;
         }
 
@@ -645,6 +656,7 @@ void PIDDrive(float distance, float expectedSpeed){ //Drive function that matche
         rightSign=-rightSign;
         leftSign=-leftSign;
     }
+    float startTime = TimeNow();
 
     while(((leftEncoder.Counts() / 318.0) * CIRCUMFRENCE) < distance || ((rightEncoder.Counts() / 318.0) * CIRCUMFRENCE) < distance){
         rightMotor.SetPercent(rightSign * rightPIDAdjustment(expectedSpeed)); //dynamically adjust motor percents
@@ -655,6 +667,9 @@ void PIDDrive(float distance, float expectedSpeed){ //Drive function that matche
         }
         if(((leftEncoder.Counts() / 318.0) * CIRCUMFRENCE) >= distance){//when left wheel has covered distance
             leftMotor.Stop();//stop
+        }
+        if(TimeNow()-startTime>10){
+            break;
         }
     }
     //just in case
@@ -771,11 +786,11 @@ void checkHeading(float heading){
                         leftMotor.Stop();
                     }
                 } else{//if heading difference is greater than 180
-                    if((currentHeading-heading)-360 >= 20){
+                    if((currentHeading-heading)-360 >= 10){
                         Turn(true,20,(.9*(currentHeading-heading)-360));
 
                     }
-                    else if((currentHeading-heading)+360 <= -20){
+                    else if((currentHeading-heading)+360 <= -10){
                         Turn(true,20,(.9*(currentHeading-heading)+360));
 
                     }
@@ -811,7 +826,12 @@ void checkYMinus(float yCoord) //using RPS while robot is in the -y direction
     //check whether the robot is within an acceptable range
     while(RPS.Y() < yCoord - .1 || RPS.Y() > yCoord + .1)
     {
+        LCD.Write("Expected Y: ");
+        LCD.WriteLine(yCoord);
+        LCD.Write("Current Y: ");
+        LCD.WriteLine(RPS.Y());
         Sleep(100);
+        LCD.Clear();
         if(abs(RPS.Y()-yCoord)>1){
             PIDDrive((RPS.Y()-yCoord),5);
         }
@@ -843,7 +863,12 @@ void checkYPlus(float yCoord) //using RPS while robot is in the +y direction
     //check whether the robot is within an acceptable range
     while(RPS.Y() < yCoord - .1 || RPS.Y() > yCoord + .1)
     {
+        LCD.Write("Expected Y: ");
+        LCD.WriteLine(yCoord);
+        LCD.Write("Current Y: ");
+        LCD.WriteLine(RPS.Y());
         Sleep(100);
+        LCD.Clear();
         if(abs(RPS.Y()-yCoord)>1){
             PIDDrive(-(RPS.Y()-yCoord),5);
         }
@@ -876,7 +901,12 @@ void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
     //check whether the robot is within an acceptable range
     while(RPS.X() < xCoord - .2 || RPS.X() > xCoord + .2)
     {
+        LCD.Write("Expected X: ");
+        LCD.WriteLine(xCoord);
+        LCD.Write("Current X: ");
+        LCD.WriteLine(RPS.X());
         Sleep(100);
+        LCD.Clear();
         if(abs(RPS.X()-xCoord)>1){
             PIDDrive((RPS.X()-xCoord),5);
         }
@@ -886,7 +916,7 @@ void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
 
             rightMotor.SetPercent(10);
             leftMotor.SetPercent(-10);
-            Sleep(50);
+            Sleep(70);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -896,7 +926,7 @@ void checkXMinus(float xCoord) //using RPS while robot is in the +x direction
 
             rightMotor.SetPercent(-10);
             leftMotor.SetPercent(10);
-            Sleep(50);
+            Sleep(70);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -907,11 +937,18 @@ void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
 {
 
     //check whether the robot is within an acceptable range
-    while(RPS.X() < xCoord - .2 || RPS.X() > xCoord + .2)
+    while(RPS.X() < xCoord - .1 || RPS.X() > xCoord + .1)
     {
+        LCD.Write("Expected X: ");
+        LCD.WriteLine(xCoord);
+        LCD.Write("Current X: ");
+        LCD.WriteLine(RPS.X());
         Sleep(100);
-        if(abs(RPS.X()-xCoord)>1){
-            PIDDrive(-(RPS.X()-xCoord),5);
+        LCD.Clear();
+        if(xCoord>0){
+            if(abs(RPS.X()-xCoord)>2){
+                PIDDrive(-(RPS.X()-xCoord),5);
+            }
         }
         if(RPS.X() > xCoord)
         {
@@ -919,7 +956,7 @@ void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
 
             rightMotor.SetPercent(-10);
             leftMotor.SetPercent(10);
-            Sleep(50);
+            Sleep(70);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -929,7 +966,7 @@ void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
 
             rightMotor.SetPercent(10);
             leftMotor.SetPercent(-10);
-            Sleep(50);
+            Sleep(70);
             rightMotor.Stop();
             leftMotor.Stop();
         }
@@ -957,6 +994,21 @@ void RPSCorrect(){ //Take course specific RPS values to use in code
     LCD.WriteLine(xLight);
     LCD.WriteLine(yLight);
 
+    LCD.WriteLine("Place at heading 0");
+
+    //wait for touch
+    while(LCD.Touch(&x,&y));
+    while(!LCD.Touch(&x,&y));
+    Sleep(500);
+
+
+    do{//take rps values until the values are positive
+        zeroHeading = RPS.Heading();
+        hCorrectionFactor = zeroHeading;
+        Sleep(200);
+    }while (zeroHeading < 0);
+    LCD.WriteLine(zeroHeading);
+
     LCD.WriteLine("Place at coin Slot");
 
     //wait for touch
@@ -972,19 +1024,7 @@ void RPSCorrect(){ //Take course specific RPS values to use in code
 
     LCD.WriteLine(xCoinSlot);
     LCD.WriteLine(yCoinSlot);
-
-    LCD.WriteLine("Place at heading 0");
-
-    //wait for touch
-    while(LCD.Touch(&x,&y));
-    while(!LCD.Touch(&x,&y));
-    Sleep(500);
-
-    do{//take rps values until the values are positive
-        zeroHeading = RPS.Heading();
-        hCorrectionFactor = zeroHeading;
-        Sleep(200);
-    }while (zeroHeading < 0);
+    Sleep(1.0);
     LCD.Clear();
 
 }
