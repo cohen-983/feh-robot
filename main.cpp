@@ -161,7 +161,7 @@ void flipLever(){
 void slideSlider(){
     coinArm.SetDegree(180);//drop arm onto sliders
     Sleep(1.0);//wait for arm to move
-    PIDDrive(-8,4);//drive with the sliders
+    PIDDrive(-7,4);//drive with the sliders
 //    coinArm.SetDegree(150);//let go of sliders
 //    PIDDrive(5,4);//move back to get a better grip on the sliders
 //    coinArm.SetDegree(180);//regrip sliders
@@ -197,7 +197,7 @@ void moveToSlider(){
 void goDownRamp(){
     Turn(true,40,25);//turn away from slider
     PIDDrive(3,5);//move from slider
-    Turn(true,40,67);//turn towards ramp
+    Turn(true,40,60);//turn towards ramp
     PIDDrive(10,5);//move towards ramp
     checkHeading(269);//check heading to ramp
     PIDDrive(14.5,10);//get up steps
@@ -1011,6 +1011,7 @@ void RPSCorrect(){ //Take course specific RPS values to use in code
 
     LCD.WriteLine("Place at coin Slot");
 
+    coinArm.SetDegree(160);
     //wait for touch
     while(LCD.Touch(&x,&y));
     while(!LCD.Touch(&x,&y));
