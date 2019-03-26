@@ -77,11 +77,10 @@ void checkHeading(float angle);
 void TurnWithRPS(float angleToFace);
 
 void start(){
-    PIDDrive(.5,3);
+    PIDDrive(.7,4);
     checkYPlus(yLight); //Check the y coordinate of the DDR light
     Turn(true,40,41);//Turn to the lights
     checkHeading(0); //Check heading to the lights
-
 }
 
 void moveToLight(){
@@ -161,7 +160,7 @@ void flipLever(){
 void slideSlider(){
     coinArm.SetDegree(180);//drop arm onto sliders
     Sleep(1.0);//wait for arm to move
-    PIDDrive(-7,4);//drive with the sliders
+    PIDDrive(-9.5,4);//drive with the sliders
 //    coinArm.SetDegree(150);//let go of sliders
 //    PIDDrive(5,4);//move back to get a better grip on the sliders
 //    coinArm.SetDegree(180);//regrip sliders
@@ -179,10 +178,10 @@ void moveToSlider(){
     PIDDrive(4,6);
     Turn(true,40,15);
     checkHeading(273);
-    PIDDrive(-11.75,8);//drive to sliders
+    PIDDrive(-11.25,8);//drive to sliders
     Turn(true,40,-90);//turn facing the right wall
     /*
-     * Turn moves the sliders, could be used to ush them all the way
+     * Turn moves the sliders, could be used to push them all the way
      */
     //move into the wall
     rightMotor.SetPercent(20);
@@ -196,7 +195,7 @@ void moveToSlider(){
 
 void goDownRamp(){
     Turn(true,40,25);//turn away from slider
-    PIDDrive(3,5);//move from slider
+    PIDDrive(4.5,5);//move from slider
     Turn(true,40,60);//turn towards ramp
     PIDDrive(10,5);//move towards ramp
     checkHeading(269);//check heading to ramp
