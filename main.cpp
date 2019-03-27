@@ -110,7 +110,7 @@ void pressCorrectButton(){
             checkHeading(0);
 
         }
-        PIDDrive(1.75,3);//Move closer to ramp
+        PIDDrive(1,3);//Move closer to ramp
         Turn(true,40,-90);//turn to ramp
 }
 
@@ -142,6 +142,7 @@ void flipLever(){
     PIDDrive(3,5);//move away from coin slot
     Turn(true,40,-15);//turn to left wall
     checkHeading(180);
+    PIDDrive(-.5,4);
     checkXMinus(4.5);//move to x value of lever
     Turn(true,40,-85); //Turn to lever
     checkHeading(268.5);
@@ -178,7 +179,7 @@ void moveToSlider(){
     PIDDrive(4,6);
     Turn(true,40,15);
     checkHeading(273);
-    PIDDrive(-11.25,8);//drive to sliders
+    PIDDrive(-10.75,8);//drive to sliders
     Turn(true,40,-90);//turn facing the right wall
     /*
      * Turn moves the sliders, could be used to push them all the way
@@ -196,18 +197,18 @@ void moveToSlider(){
 void goDownRamp(){
     Turn(true,40,25);//turn away from slider
     PIDDrive(4.5,5);//move from slider
-    Turn(true,40,60);//turn towards ramp
+    Turn(true,40,55);//turn towards ramp
     PIDDrive(10,5);//move towards ramp
     checkHeading(269);//check heading to ramp
     PIDDrive(14.5,10);//get up steps
     checkHeading(267);//turn angled down ramp
-    PIDDrive(22,4);//get down ramp
+    PIDDrive(21.5,4);//get down ramp
 }
 
 void pushFinalButton(){
-    Turn(true,40,60);//turn to button
+    Turn(true,40,65);//turn to button
     PIDDrive(1,5);
-    checkHeading(202.5);//align with button
+    checkHeading(198.5);//align with button
     PIDDrive(500,15);//full speed into button
 }
 
