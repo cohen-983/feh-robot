@@ -95,7 +95,7 @@ void pressCorrectButton(){
             Turn(true,40,85);//Turn to the button
             checkHeading(272);//Make sure the robot is facing the button
             Move(18,6);//Push button
-            Move(15,-5);//Back away from button
+            Move(20,-5.5);//Back away from button
             Turn(true,40,-85);//Turn to right wall
             checkHeading(0);//check that the robot is straight
             PIDDrive(5.2,5);//Move to base of ramp
@@ -105,24 +105,27 @@ void pressCorrectButton(){
             Turn(true,40,85);//turn to button
             checkHeading(272);//face button
             Move(18,6);//push button
-            Move(15,-5);//back away from button
+            Move(20,-5.5);//back away from button
             Turn(true,40,-85);//turn to right wall
             checkHeading(0);
 
         }
-        PIDDrive(1,3);//Move closer to ramp
+        PIDDrive(1.5,3);//Move closer to ramp
         Turn(true,40,-90);//turn to ramp
 }
 
 void moveUpRamp(){
     checkHeading(91);//Align to ramp
-    PIDDrive(31.2,10);//Up ramp
+    PIDDrive(30.7,10);//Up ramp
     PIDDrive(12.8,5);//down steps
 }
 
 void moveToCoinSlot(){
-    Turn(true,40,-140);//Turn to coin
-    PIDDrive(5,7);//move out of dead zone
+    Turn(true,40,85);
+    PIDDrive(-2,5);
+    Turn(true,40,140);
+    //Turn(true,40,-140);//Turn to coin
+    PIDDrive(6.5,7);//move out of dead zone
     checkYMinus(yCoinSlot);//Move to the appropriate y value
     Turn(true,35,45);//Perp to wall
     Sleep(100);
@@ -143,7 +146,7 @@ void flipLever(){
     Turn(true,40,-15);//turn to left wall
     checkHeading(180);
     PIDDrive(-.5,4);
-    checkXMinus(4.5);//move to x value of lever
+//    checkXMinus(4.5);//move to x value of lever
     Turn(true,40,-85); //Turn to lever
     checkHeading(268.5);
     checkYMinus(yCoinSlot+.776457135); //Check a referenced value for y
@@ -156,12 +159,14 @@ void flipLever(){
     leftMotor.Stop();
     rightMotor.Stop();
     dropCoin();//Drop the arm on the lever
+    Sleep(1.0);
+    PIDDrive(.5,5);
 }
 
 void slideSlider(){
     coinArm.SetDegree(180);//drop arm onto sliders
     Sleep(1.0);//wait for arm to move
-    PIDDrive(-9.5,4);//drive with the sliders
+    PIDDrive(-10,4);//drive with the sliders
 //    coinArm.SetDegree(150);//let go of sliders
 //    PIDDrive(5,4);//move back to get a better grip on the sliders
 //    coinArm.SetDegree(180);//regrip sliders
@@ -171,7 +176,7 @@ void slideSlider(){
 
 void moveToSlider(){
     Turn(true,20,5);
-    PIDDrive(15.5,8);//drive away from lever
+    PIDDrive(15,8);//drive away from lever
     Turn(true,40,80);//turn so back end of robot is facing the sliders
     checkHeading(230);
     PIDDrive(-14,8);//move in front of ramp
@@ -196,13 +201,14 @@ void moveToSlider(){
 
 void goDownRamp(){
     Turn(true,40,25);//turn away from slider
-    PIDDrive(4.5,5);//move from slider
+    PIDDrive(5.1,5);//move from slider
     Turn(true,40,55);//turn towards ramp
     PIDDrive(10,5);//move towards ramp
     checkHeading(269);//check heading to ramp
     PIDDrive(14.5,10);//get up steps
     checkHeading(267);//turn angled down ramp
-    PIDDrive(21.5,4);//get down ramp
+    PIDDrive(19.5,4);//get down ramp
+    checkYMinus(yLight + 3.75);
 }
 
 void pushFinalButton(){
@@ -832,7 +838,10 @@ void checkYMinus(float yCoord) //using RPS while robot is in the -y direction
         LCD.WriteLine(RPS.Y());
         Sleep(100);
         LCD.Clear();
-        if(abs(RPS.Y()-yCoord)>1){
+        if(RPS.Y()<0){
+            PIDDrive(.25,5);
+        }
+        else if(abs(RPS.Y()-yCoord)>1){
             PIDDrive((RPS.Y()-yCoord),5);
         }
         else if(RPS.Y() > yCoord)
@@ -1028,6 +1037,11 @@ void RPSCorrect(){ //Take course specific RPS values to use in code
     Sleep(1.0);
     LCD.Clear();
 
+    coinArm.SetDegree(35);
+
+    LCD.WriteLine("Touch to wait for light");
+    while(LCD.Touch(&x,&y));
+    while(!LCD.Touch(&x,&y));
 }
 
 float correctH(float angle){//adjust angle based on the zero angle aquired in RPSCorrect
