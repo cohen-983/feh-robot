@@ -99,7 +99,7 @@ void pressCorrectButton(){
         } else{//if light is blue or CdS doesnt see a light
             LCD.SetBackgroundColor(BLUE); //Set screen to blue
             PIDDrive(5.2,5);//Move to blue light
-            Turn(true,40,85);//turn to button
+            Turn(true,40,90);//turn to button
             checkHeading(272);//face button
             Move(18,6);//push button
             Move(20,-5.5);//back away from button
@@ -107,9 +107,9 @@ void pressCorrectButton(){
             checkHeading(0);
 
         }
-        PIDDrive(1.5,3);//Move closer to ramp
+        PIDDrive(1,3);//Move closer to ramp
         checkXPlus(xLight + 6.7);
-        Turn(true,40,-90);//turn to ramp
+        Turn(true,40,-86);//turn to ramp
 }
 
 void moveUpRamp(){
@@ -165,18 +165,23 @@ void slideSlider(){
     coinArm.SetDegree(180);//drop arm onto sliders
     Sleep(1.0);//wait for arm to move
     PIDDrive(-10.5,4);//drive with the sliders
+    coinArm.SetDegree(150);
+    PIDDrive(2,3);
+    coinArm.SetDegree(180);
+    Sleep(100);
+    PIDDrive(-2,3);
     coinArm.SetDegree(35);//let go of sliders
 }
 
 void moveToSlider(){
     Turn(true,20,10);
-    PIDDrive(15,8);//drive away from lever
-    Turn(true,40,80);//turn so back end of robot is facing the sliders
+    PIDDrive(15,10);//drive away from lever
+    Turn(true,40,76);//turn so back end of robot is facing the sliders
     checkHeading(230);
     PIDDrive(-14,8);//move in front of ramp
     Turn(true,40,-60);//turn so back is facing sliders
     PIDDrive(4,6);
-    Turn(true,40,15);
+    Turn(true,40,12);
     checkHeading(273);
     PIDDrive(-10.75,8);//drive to sliders
     Turn(true,40,-89);//turn facing the right wall
@@ -193,12 +198,12 @@ void moveToSlider(){
 void goDownRamp(){
     Turn(true,40,25);//turn away from slider
     PIDDrive(5.7,5);//move from slider
-    Turn(true,40,55);//turn towards ramp
+    Turn(true,40,50);//turn towards ramp
     PIDDrive(10,5);//move towards ramp
     checkHeading(269);//check heading to ramp
     PIDDrive(14.5,10);//get up steps
     checkHeading(267);//turn angled down ramp
-    PIDDrive(19.5,3);//get down ramp
+    PIDDrive(19.5,6);//get down ramp
     checkYMinus(yLight + 3.75);
 }
 
@@ -206,7 +211,7 @@ void pushFinalButton(){
     Turn(true,40,65);//turn to button
     PIDDrive(1,5);
     checkHeading(198.5);//align with button
-    PIDDrive(500,15);//full speed into button
+    PIDDrive(500,25);//full speed into button
 }
 
 
@@ -871,7 +876,7 @@ void checkYPlus(float yCoord) //using RPS while robot is in the +y direction
         Sleep(100);
         LCD.Clear();
         if(abs(RPS.Y()-yCoord)>1){
-            PIDDrive(-(RPS.Y()-yCoord),5);
+            PIDDrive(-(RPS.Y()-yCoord),7);
         }
         if(RPS.Y() > yCoord)
         {
@@ -948,7 +953,7 @@ void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
         LCD.Clear();
         if(xCoord>0){
             if(abs(RPS.X()-xCoord)>2){
-                PIDDrive(-(RPS.X()-xCoord),5);
+                PIDDrive(-.97*(RPS.X()-xCoord),8);
             }
 
             if(RPS.X() > xCoord)
