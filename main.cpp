@@ -12,9 +12,6 @@
 #define PI 3.1415926
 #define CIRCUMFRENCE 7.85
 #define WHEEL_TO_WHEEL_WIDTH 7.5
-//#define CORRECT_X 18.699
-//#define CORRECT_Y 6.599
-//#define CORRECT_H 0
 
 FEHMotor rightMotor(FEHMotor::Motor0,9.0);
 FEHMotor leftMotor(FEHMotor::Motor1,9.0);
@@ -111,6 +108,7 @@ void pressCorrectButton(){
 
         }
         PIDDrive(1.5,3);//Move closer to ramp
+        checkXPlus(xLight + 6.7);
         Turn(true,40,-90);//turn to ramp
 }
 
@@ -160,22 +158,18 @@ void flipLever(){
     rightMotor.Stop();
     dropCoin();//Drop the arm on the lever
     Sleep(1.0);
-    PIDDrive(.5,5);
+    PIDDrive(.7,5);
 }
 
 void slideSlider(){
     coinArm.SetDegree(180);//drop arm onto sliders
     Sleep(1.0);//wait for arm to move
-    PIDDrive(-10,4);//drive with the sliders
-//    coinArm.SetDegree(150);//let go of sliders
-//    PIDDrive(5,4);//move back to get a better grip on the sliders
-//    coinArm.SetDegree(180);//regrip sliders
-//    PIDDrive(-6.6,4);//move sliders the rest of the way
+    PIDDrive(-10.5,4);//drive with the sliders
     coinArm.SetDegree(35);//let go of sliders
 }
 
 void moveToSlider(){
-    Turn(true,20,5);
+    Turn(true,20,10);
     PIDDrive(15,8);//drive away from lever
     Turn(true,40,80);//turn so back end of robot is facing the sliders
     checkHeading(230);
@@ -185,10 +179,7 @@ void moveToSlider(){
     Turn(true,40,15);
     checkHeading(273);
     PIDDrive(-10.75,8);//drive to sliders
-    Turn(true,40,-90);//turn facing the right wall
-    /*
-     * Turn moves the sliders, could be used to push them all the way
-     */
+    Turn(true,40,-89);//turn facing the right wall
     //move into the wall
     rightMotor.SetPercent(20);
     leftMotor.SetPercent(-20);
@@ -201,7 +192,7 @@ void moveToSlider(){
 
 void goDownRamp(){
     Turn(true,40,25);//turn away from slider
-    PIDDrive(5.1,5);//move from slider
+    PIDDrive(5.7,5);//move from slider
     Turn(true,40,55);//turn towards ramp
     PIDDrive(10,5);//move towards ramp
     checkHeading(269);//check heading to ramp
@@ -342,18 +333,19 @@ void Move(int percent, float distance)
         {
             rightMotor.SetPercent((rightCoeff*powerPercent)*rightCountsRatio);
             leftMotor.SetPercent(leftCoeff*powerPercent);
-            //LCD.WriteLine("Turn right");
+            //Turn right
         }
 
         else if(leftCounts > rightCounts + 5)
         {
             rightMotor.SetPercent(rightCoeff*powerPercent);
             leftMotor.SetPercent((leftCoeff*powerPercent)*leftCountsRatio);
-            //LCD.WriteLine("Turn Left");
+            //Turn Left
         }
 
         else if(leftCounts == rightCounts)
         {
+            //dont include the ratio increase
             rightMotor.SetPercent(rightCoeff*powerPercent);
             leftMotor.SetPercent(leftCoeff*powerPercent);
         }
@@ -958,26 +950,27 @@ void checkXPlus(float xCoord) //using RPS while robot is in the +x direction
             if(abs(RPS.X()-xCoord)>2){
                 PIDDrive(-(RPS.X()-xCoord),5);
             }
-        }
-        if(RPS.X() > xCoord)
-        {
-            //pulse the motors for a short duration in the correct direction
 
-            rightMotor.SetPercent(-10);
-            leftMotor.SetPercent(10);
-            Sleep(70);
-            rightMotor.Stop();
-            leftMotor.Stop();
-        }
-        else if(RPS.X() < xCoord)
-        {
-            //pulse the motors for a short duration in the correct direction
+            if(RPS.X() > xCoord)
+            {
+                //pulse the motors for a short duration in the correct direction
 
-            rightMotor.SetPercent(10);
-            leftMotor.SetPercent(-10);
-            Sleep(70);
-            rightMotor.Stop();
-            leftMotor.Stop();
+                rightMotor.SetPercent(-10);
+                leftMotor.SetPercent(10);
+                Sleep(70);
+                rightMotor.Stop();
+                leftMotor.Stop();
+            }
+            else if(RPS.X() < xCoord)
+            {
+                //pulse the motors for a short duration in the correct direction
+
+                rightMotor.SetPercent(10);
+                leftMotor.SetPercent(-10);
+                Sleep(70);
+                rightMotor.Stop();
+                leftMotor.Stop();
+            }
         }
     }
 }
