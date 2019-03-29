@@ -16,5 +16,7 @@ Based on an assumption of inconsistency in the coordinates provided by RPS betwe
 Takes a set of known good coordinates and creates a global correction factor based on the difference between them and the coordinates on the current course.
 ### CorrectH
 Takes an argument of the form (float angle).
-The angle given to the function is the angle provided by 
+The angle given to the function is the angle provided by the checkHeading function.
 Uses the correction factor created in the RPSCorrect routine to address individual course variation in heading.  If the heading exceeds 360, it is wrapped back around, either to the modulus of 360 and the heading if it exceeds 360, or the sum of the heading and 360 if it is negative.
+### checkXPlus
+Takes an argument of the form (float xCoord).
