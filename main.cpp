@@ -59,7 +59,7 @@ void waitForLight(){
     coinArm.SetDegree(20);
     float startTime = TimeNow();//Take start time for timeout
     while(cds.Value()>.5){ //While the cds cell does not see the light
-        if(TimeNow()-startTime > 60){//Timeout after 60 seconds
+        if(TimeNow()-startTime > 30){//Timeout after 60 seconds
             break;
         }
     }
@@ -198,7 +198,7 @@ void goDownRamp(){
     checkHeading(269);//check heading to ramp
     PIDDrive(14.5,10);//get up steps
     checkHeading(267);//turn angled down ramp
-    PIDDrive(19.5,4);//get down ramp
+    PIDDrive(19.5,3);//get down ramp
     checkYMinus(yLight + 3.75);
 }
 
@@ -747,8 +747,8 @@ void resetPIDVariables(){
     rightPreviousError=0;
     rOldMotorPower=5;
     lOldMotorPower=5;
-    leftSign=-1;
-    rightSign=1;
+    leftSign=-2;
+    rightSign=2;
 }
 
 void checkHeading(float heading){
